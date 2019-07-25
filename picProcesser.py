@@ -5,7 +5,24 @@ from sklearn.cluster import MeanShift
 
 class picProcesser():
     def __init__(self):
+        #x0,y0,x1,y1
+        self.postionData = {
+            'HP':[515,697,700,705],
+            'MP':[515,706,700,714],
+            'MONEY':[715,703,794,716],
+            'CS':[1184,3,1217,20],#补刀
+            'MAP':[538,1100,719,1279]
+        }
+
+    def elementExtract(self,elementName,oriPic):
+        '''
+        从图片中提取某些元素，如小地图，血条，蓝条等，具体数据在self.postionData
+        :param elementName: 元素名称 具体看那个字典
+        :param oriPic: 原始图片 格式cv2图片
+        :return: 返回地图，格式cv2图片
+        '''
         pass
+
 
     def loadPic(self,path= 'res/Screen01.png'):
         pic=cv2.imread(path)
@@ -151,4 +168,5 @@ if __name__ == "__main__":
 
     pic = np.uint8((pic>254)*1)
     centerPoint = p.postionInSmallMapExtract(pic)
+
 
