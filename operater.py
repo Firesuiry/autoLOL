@@ -48,6 +48,7 @@ class operater():
         :param delay:
         :return:
         '''
+        print('addMouseCommandToJson x:{} y:{} liftClick:{} rightClick:{} delay={}'.format(x,y,liftClick,rightClick,delay))
         if x != -1 and y != -1:
             mathodName = 'MoveTo'
             command = {
@@ -77,11 +78,11 @@ class operater():
 
 
 if __name__ == "__main__":
-    p = operater(1024)
-    p.addKeyboardCommandToJson('ctrl',Down=True)
-    p.addKeyboardCommandToJson('w')
-    p.addKeyboardCommandToJson('ctrl',Up=True)
-    p.addMouseCommandToJson(1000,1000,liftClick=True)
+    p = operater(1)
+    p.addKeyboardCommandToJson('a',Down=True)
+    p.addMouseCommandToJson(619,425,liftClick=True)
+    p.addKeyboardCommandToJson('a',Up=True)
+
     p.sendCommand()
 
 

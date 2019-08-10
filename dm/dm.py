@@ -7,6 +7,7 @@ class dmBase():
         self.id = 0
 
 
+
     def getCommand(self):
         f_path = r'E:\develop\autoLOL\dm\data\{}.txt'.format(self.id)
         command = ''
@@ -19,19 +20,28 @@ class dmBase():
 
 class dmOperater(dmBase):
     def __init__(self,id,hwnd,manager):
+
         self.id = id
         self.hwnd = hwnd
         self.manager = manager
-        print ('dmOperater启动，id：{}'.format(id))
+        print ('dmOperater启动，id：{} hwnd:{}'.format(id,hwnd))
         self.dm = win32com.client.Dispatch('dm.dmsoft')  # 调用大漠插件
         dm_ret = self.dm.SetShowErrorMsg(0)
         dm_ret = self.dm.BindWindowEx(hwnd, "gdi", "windows", "windows", "", 0)
         print('窗口绑定结果：%s'%dm_ret)
+        if dm_ret == 0:
+            return
         self.commandCahe = ''
+
+        if not os.path.exists('screen'+str(self.id)):
+            os.makedirs('screen'+str(self.id))
+
+        self.mainLoop()
 
     def mainExcuter(self):
         command = self.getCommand()
         dm_ret = self.dm.Capture(0, 0, 2000, 2000, "screen%s/0.bmp" % self.id)
+        print ('cap result:{}'.format(dm_ret))
         self.excuteCommand(command)
 
     def excuteCommand(self,command):
@@ -78,7 +88,9 @@ class dmOperater(dmBase):
 
 
     def mainLoop(self):
-        pass
+        while True:
+            self.mainExcuter()
+            time.sleep(0.1)
 
 class dmManager(dmBase):
     def __init__(self):
@@ -88,13 +100,18 @@ class dmManager(dmBase):
         self.operaterHwndsList = []
         self.operaterDict = {}
         self.opId = 0 #为了创建operater储存id
+        self.checkHwnd()
 
     def checkHwnd(self):
-        hwnds = dm.EnumWindow(0, "League of Legends (TM) Client - [Windows 7 x64]", "", 1 + 4 + 8 + 16)
+        hwnds = self.dm.EnumWindow(0, "League of Legends (TM) Client - [Windows 7 x64]", "", 1 + 4 + 8 + 16)
+        print (hwnds)
+        print (type(hwnds))
+        if type(hwnds) == type('str'):
+            hwnds = [hwnds]
         for hwnd in hwnds:
             if hwnd not in self.operaterHwndsList:
                 self.opId += 1
-                op = dmOperater(self.opId,hwnd,self) #此处待开发多线程方式
+                op = dmOperater(self.opId,int(hwnd),self) #此处待开发多线程方式
                 opDict = {
                     'id':self.opId,
                     'hwnd':hwnd,
@@ -108,8 +125,8 @@ class dmManager(dmBase):
 
 
 if __name__ == '__main__':
-    p = dmOperater(1024,0,None)
-    p.mainExcuter()
+    p = dmManager()
+
 
 
     exit()
