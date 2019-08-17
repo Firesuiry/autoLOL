@@ -3,6 +3,67 @@ import cv2
 from skimage import morphology
 from sklearn.cluster import MeanShift
 
+class postionClass():
+    def __init__(self):
+        pass
+
+    #节点名称介绍
+    '''
+    首位 L左下边 R右上边
+    次位 Base基地（结束） T上 M中 B下
+    再次 Node 召唤节点（结束） T塔
+    再次 1高地塔（结束） 2二塔（结束） 3边塔（结束） 0门牙塔
+    再次 0左门牙塔（结束） 1右门牙塔（结束）
+    '''
+
+    @staticmethod
+    def LBase():
+        return [1119,694]
+
+    @staticmethod
+    def LBNode():
+        return [1142,699]
+
+    @staticmethod
+    def LBT1():
+        return [1151,700]
+
+    @staticmethod
+    def LBT2():
+        return [1182,697]
+
+    @staticmethod
+    def LBT3():
+        return [1223,700]
+
+    @staticmethod
+    def RBT3():
+        return [1262,633]
+
+    @staticmethod
+    def RBT2():
+        return [1256,619]
+
+    @staticmethod
+    def RBT1():
+        return [1260,592]
+
+    @staticmethod
+    def RBNode():
+        return [1259,583]
+
+    @staticmethod
+    def RBase():
+        return [1255,560]
+
+    @staticmethod
+    def RT00():
+        return [1247,563]
+
+    @staticmethod
+    def RT01():
+        return [1253,568]
+
 class picProcesser():
     def __init__(self):
         #x0,y0,x1,y1
@@ -13,6 +74,33 @@ class picProcesser():
             'CS':[1184,3,1217,20],#补刀
             'MAP':[538,1100,719,1279]
         }
+        self.nodesPostions = {
+            'LBase':[1119,694],
+            'LBNode':[1142, 699],
+            'LBT1':[1151, 700],
+            'LBT2':[1182, 697],
+            'LBT3':[1223, 700],
+            'RBT3':[1262, 633],
+            'RBT2':[1256, 619],
+            'RBT1':[1260, 592],
+            'RBNode':[1259, 583],
+            'RT01':[1253, 568],
+            'RT00':[1247, 563],
+            'RBase':[1255, 560],
+        }
+        self.bottomNodeKeys = ['LBase', 'LBNode', 'LBT1', 'LBT2', 'LBT3', 'RBT3', 'RBT2', 'RBT1', 'RBNode', 'RT01', 'RT00', 'RBase']
+        self.bottimMiddlePoint = []
+
+        point = 0
+        for key in self.bottomNodeKeys:
+            newPoint = self.nodesPostions[key]
+            if point == 0:
+                point = newPoint
+            else:
+                middlePoint = 0.5*(point + newPoint)
+                point = newPoint
+                self.bottomNodeKeys.append(middlePoint)
+
 
     def elementExtract(self,elementName,oriPic):
         '''
@@ -22,7 +110,6 @@ class picProcesser():
         :return: 返回地图，格式cv2图片
         '''
         pass
-
 
     def loadPic(self,path= 'res/Screen01.png'):
         pic=cv2.imread(path)
@@ -40,6 +127,22 @@ class picProcesser():
         mapPic = oriPic[538:719,1100:1279]
         print(mapPic.size)
         return mapPic
+
+    def pointTransform(self,pointIn,map2all = False):
+        '''
+        :param pointIn: 输入坐标，【y，x】
+        :param map2all: 如果是小地图转通用坐标，该参数为True
+        :return:返回坐标值列表，【y，x】
+        '''
+        pointIn = pointIn.copy()
+        yOffset = self.postionData['MAP'][0]
+        xOffset = self.postionData['MAP'][1]
+        addRatio = -1
+        if map2all:
+            addRatio = 1
+        pointIn += addRatio * [yOffset,xOffset]
+        return pointIn
+
 
     def postionInSmallMapExtract(self,mapPic):
         #input pic is 0 and 1 matric
@@ -145,11 +248,6 @@ class picProcesser():
         # print('估计中心点：%s 精确中心点：%s'%(centerPos,centerPoint))
         return centerPoint
 
-
-
-
-
-
     def picSize(self,img):
         height = len(img)
         width = len(img[0])
@@ -161,7 +259,9 @@ class picProcesser():
 
 if __name__ == "__main__":
     p = picProcesser()
+    print (p.nodesPostions.keys())
     pic = p.loadPic('res/Screen19.png')
+    print(pic.shape)
     pic = p.smallMapExtract(pic)
 
     pic=cv2.cvtColor(pic,cv2.COLOR_BGR2GRAY)
