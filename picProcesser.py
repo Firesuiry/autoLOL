@@ -99,7 +99,15 @@ class picProcesser():
             else:
                 middlePoint = 0.5*(point + newPoint)
                 point = newPoint
-                self.bottomNodeKeys.append(middlePoint)
+                self.bottimMiddlePoint.append(middlePoint)
+
+    def posCaculate(self,x,y,bottom = False,top = False,middle = False):
+        if not (bottom or top or middle):
+            bottom = True
+
+        if bottom:
+            pos = [x,y]
+
 
 
     def elementExtract(self,elementName,oriPic):
