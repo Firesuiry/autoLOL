@@ -3,8 +3,30 @@ import time
 import json,os
 
 class operater():
-    def __init__(self,id = 0):
+    def __init__(self,id = 1):
         self.id = id
+        self.commandCahe = {
+            'time':0,
+            'commandList':[]
+        }
+        self.bottomNodeList = []
+
+    def loadBottomNodeList(self,bottomNodeList):
+        pass
+
+    def MoveToMapPostion(self,postionOnMap):
+        '''
+        攻击移动前往地图上的坐标
+        :param postionOnMap:
+        :return:
+        '''
+        key = 'A'
+        self.addKeyboardCommandToJson(key,Down=True)
+        self.addMouseCommandToJson(postionOnMap[0],postionOnMap[1],liftClick=True)
+        self.addKeyboardCommandToJson(key,Up=True)
+
+
+    def clearCommandCahe(self):
         self.commandCahe = {
             'time':0,
             'commandList':[]
@@ -12,14 +34,16 @@ class operater():
 
     def sendCommand(self):
         f_path = r'E:\develop\autoLOL\dm\data\{}.txt'.format(self.id)
-        self.commandCahe['time'] = time.time()
+        self.commandCahe['time'] = round(time.time(),1)
+        delayTime = 0
+        for command in self.commandCahe['commandList']:
+            delayTime += command.get('delay',100)
         command = json.dumps(self.commandCahe)
-        self.commandCahe = {
-            'time':0,
-            'commandList':[]
-        }
+        self.clearCommandCahe()
         with open(f_path,'w') as f:
             command = f.write(command)
+        print('命令写入完成，等待{}毫秒'.format(delayTime))
+        time.sleep(delayTime/1000)
 
 
 
@@ -53,8 +77,8 @@ class operater():
             mathodName = 'MoveTo'
             command = {
                 'name':mathodName,
-                'x':x,
-                'y':y,
+                'x':int(x),
+                'y':int(y),
                 'delay':delay
             }
             self.commandCahe['commandList'].append(command)

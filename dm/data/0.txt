@@ -1,1 +1,1 @@
-writefortest
+{"time": 1567256563.1256027, "commandList": [{"name": "KeyDownChar", "key": "M", "delay": 100}, {"name": "MoveTo", "x": 1146, "y": 699, "delay": 100}, {"name": "LeftClick", "delay": 100}, {"name": "KeyUpChar", "key": "M", "delay": 100}]}

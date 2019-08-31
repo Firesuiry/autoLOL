@@ -2,6 +2,8 @@ import numpy as np
 import cv2
 from skimage import morphology
 from sklearn.cluster import MeanShift
+from operater import operater
+import time
 
 class postionClass():
     def __init__(self):
@@ -66,6 +68,16 @@ class postionClass():
 
 class picProcesser():
     def __init__(self):
+        self.operater = operater()
+
+        self.dataInit()
+
+    def dataInit(self):
+        '''
+        init the data which is need in the processer
+        :return:None
+        '''
+        self.currentPic = None
         #x0,y0,x1,y1
         self.postionData = {
             'HP':[515,697,700,705],
@@ -89,17 +101,41 @@ class picProcesser():
             'RBase':[1255, 560],
         }
         self.bottomNodeKeys = ['LBase', 'LBNode', 'LBT1', 'LBT2', 'LBT3', 'RBT3', 'RBT2', 'RBT1', 'RBNode', 'RT01', 'RT00', 'RBase']
+        #数据处理
         self.bottimMiddlePoint = []
-
-        point = 0
+        point = np.array([0,0])
         for key in self.bottomNodeKeys:
-            newPoint = self.nodesPostions[key]
-            if point == 0:
+            newPoint = np.array(self.nodesPostions[key])
+            if (point == 0).all():
                 point = newPoint
             else:
-                middlePoint = 0.5*(point + newPoint)
+                middlePoint = 0.5 * (point + newPoint)
                 point = newPoint
                 self.bottimMiddlePoint.append(middlePoint)
+
+        #创建节点列表
+        self.bottomNodeList = []
+        for key in self.bottomNodeKeys:
+            self.bottomNodeList.append(self.nodesPostions[key])
+
+        #节点插值
+        assert len(self.bottomNodeList) != 0
+        self.newBottomNodeList = []
+        for node in self.bottomNodeList:
+            node = np.array(node)
+            if len(self.newBottomNodeList) == 0:
+                self.newBottomNodeList.append(node)
+                continue
+            middlePoint = (self.newBottomNodeList[-1] + node) * 0.5
+            self.newBottomNodeList.append(middlePoint)
+            self.newBottomNodeList.append(node)
+        self.bottomNodeList = self.newBottomNodeList.copy()
+        assert (len(self.bottomNodeList) != 0)
+
+
+
+
+
 
     def posCaculate(self,x,y,bottom = False,top = False,middle = False):
         if not (bottom or top or middle):
@@ -107,6 +143,25 @@ class picProcesser():
 
         if bottom:
             pos = [x,y]
+
+    def closePointDetact(self,point,pointList):
+        '''
+        :param point: 输入点，[x,y]，是英雄实际位置
+        :param pointList: 输入点列表 是一串点的位置
+        :return: 返回最近点的序号
+        '''
+        print('closePointDetact point:{}'.format(point))
+        assert (len(point) == 2)
+        print(pointList)
+        point = np.array(point).reshape(1, 2)
+        pointList = np.array(pointList).reshape(-1, 2)
+        assert (point.shape == (1, 2))
+        assert (pointList.shape[1] == 2)
+        a = pointList - point
+        a = a * a
+        a = a[:, 0] + a[:, 1]
+        a = np.argmin(a)
+        return a
 
 
 
@@ -131,14 +186,12 @@ class picProcesser():
             cv2.imwrite('ans/'+saveName+'.png',pic)
 
     def smallMapExtract(self,oriPic):
-        print(oriPic.shape)
         mapPic = oriPic[538:719,1100:1279]
-        print(mapPic.size)
         return mapPic
 
     def pointTransform(self,pointIn,map2all = False):
         '''
-        :param pointIn: 输入坐标，【y，x】
+        :param pointIn: 输入坐标，【X，Y】
         :param map2all: 如果是小地图转通用坐标，该参数为True
         :return:返回坐标值列表，【y，x】
         '''
@@ -148,7 +201,8 @@ class picProcesser():
         addRatio = -1
         if map2all:
             addRatio = 1
-        pointIn += addRatio * [yOffset,xOffset]
+        pointIn[0] += addRatio * xOffset
+        pointIn[1] += addRatio * yOffset
         return pointIn
 
 
@@ -157,6 +211,9 @@ class picProcesser():
         #输入是小地图那个白框的矩阵图像，所有值只有0和1
         if np.max(mapPic) > 1:
             print('图片数据大于1')
+        if (mapPic == 0).all():
+            print('图片全为0')
+            return
 
         lieHe = np.sum(mapPic,axis = 0)#每列求和，最后是一行
         hangHe = np.sum(mapPic,axis = 1)#每行求和，最后是一列
@@ -220,7 +277,7 @@ class picProcesser():
         points = np.array([lieKuangXianPos, zeros]).T.reshape(lieChangdu,2)
         # print(points)
         # print(points.shape)
-        ms = MeanShift(bandwidth=2)
+        ms = MeanShift(bandwidth=4)
         ms.fit(points)
 
         cluster_centers = ms.cluster_centers_
@@ -241,7 +298,7 @@ class picProcesser():
             else:
                 centerPoint[0] = xs[0] + 24
         else:
-            print('err 聚类获取点非1，2个 xs：%s'(xs))
+            print('err 聚类获取点非1，2个 xs：%s'%(xs))
 
         if len(ys) == 2:
             centerPoint[1] = np.mean(ys)
@@ -251,7 +308,7 @@ class picProcesser():
             else:
                 centerPoint[1] = ys[0] + 13.5
         else:
-            print('err 聚类获取点非1，2个 ys：%s'(ys))
+            print('err 聚类获取点非1，2个 ys：%s'%(ys))
 
         # print('估计中心点：%s 精确中心点：%s'%(centerPos,centerPoint))
         return centerPoint
@@ -265,10 +322,128 @@ class picProcesser():
         skeleton =morphology.skeletonize(img)
         return skeleton
 
+    def postionExtract(self,pic = 0):
+        '''
+        封装提取位置
+        :param pic: 全局图像
+        :return: 位置
+        '''
+        if pic == 0:
+            pic = self.currentPic
+        pic = p.smallMapExtract(pic)
+        print(np.max(pic),np.min(pic))
+
+        pic = cv2.cvtColor(pic, cv2.COLOR_BGR2GRAY)
+        print(np.max(pic),np.min(pic))
+
+        pic = np.uint8((pic > 254) * 1)
+        centerPoint = p.postionInSmallMapExtract(pic)
+        return centerPoint
+
+    def picDisplay(self,pic):
+        cv2.imshow('image', pic)  # 第一个参数是窗口名称，是字符串。第二个参数是我们的图片
+        cv2.waitKey(0)  # 表示程序会无限制的等待用户的按键事件
+        cv2.destroyAllWindows()
+
+    def determineAction(self,pic = 0):
+        '''
+        通过输入图片决定所需动作 局势检测等在此实现
+
+        :param pic: 当前完整图片
+        :return: 动作字典
+        '''
+        if pic == 0:
+            pic = self.currentPic
+
+
+        action = {
+            'go':1
+        }
+        return action
+
+    def paramExtract(self,pic = 0):
+        '''
+        通过游戏图像获取游戏动作执行过程中所需的参数
+        :param pic:
+        :return:动作等所需参数
+        '''
+        params = {}
+        if pic == 0:
+            pic = self.currentPic
+        centerPoint = self.postionExtract()
+        print('after extract:{}'.format(centerPoint))
+        centerPoint = self.pointTransform(centerPoint,True)
+        print('after Transform:{}'.format(centerPoint))
+        print(centerPoint)
+        closePointIndex = self.closePointDetact(centerPoint,self.bottomNodeList)
+        print('最近点序号：{}'.format(closePointIndex))
+        backIndex = closePointIndex - 1
+        goIndex = closePointIndex + 1
+        if backIndex < 0:
+            backIndex = 0
+        l = len(self.bottomNodeList)
+        if goIndex > l:
+            goIndex = l
+        params['back'] = self.bottomNodeList[backIndex]
+        params['go'] = self.bottomNodeList[goIndex]
+
+        return params
+
+    def actionExcute(self,action,params):
+        '''
+        执行程序发出的指令到游戏
+        :param action:指令字典
+        :return:无
+        '''
+        go = action['go']
+        targetPostionName = ''
+        if go == 1:
+            targetPostionName = 'go'
+        elif go == -1:
+            targetPostionName = 'back'
+
+        targetPostion = params.get(targetPostionName,None)
+        if targetPostion is not None:
+            self.operater.MoveToMapPostion(targetPostion)
+            self.operater.sendCommand()
+
+    def getPic(self,pic):
+        '''
+        获取图片的函数，图片从此开始处理
+        :param pic:游戏全图
+        :return:
+        '''
+        print(pic.shape)
+        assert (pic.shape == (720,1280,3))
+        same = (pic == self.currentPic).all()
+        print('获取图片 重复判断结果：{}'.format(same))
+        if same:
+            return
+        self.currentPic = pic
+        action = self.determineAction()
+        params = self.paramExtract()
+        self.actionExcute(action,params)
+
+    def mainLoop(self):
+        while(True):
+        #if True:
+            pic = self.loadPic('dm/screen1/0.bmp')
+            if pic is not None:
+                self.getPic(pic)
+            else:
+                time.sleep(0.1)
+
+
+
+
+
 if __name__ == "__main__":
     p = picProcesser()
+    p.mainLoop()
+    exit()
     print (p.nodesPostions.keys())
     pic = p.loadPic('res/Screen19.png')
+
     print(pic.shape)
     pic = p.smallMapExtract(pic)
 

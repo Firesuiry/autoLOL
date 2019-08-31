@@ -6,8 +6,6 @@ class dmBase():
     def __init__(self):
         self.id = 0
 
-
-
     def getCommand(self):
         f_path = r'E:\develop\autoLOL\dm\data\{}.txt'.format(self.id)
         command = ''
@@ -49,6 +47,10 @@ class dmOperater(dmBase):
             return
         self.commandCahe == command
         cDict = json.loads(command)
+        newTime = time.time()
+        commandTime = cDict['time']
+        if newTime - commandTime > 1:
+            return
 
         commandList = cDict['commandList']
         for commandDict in commandList:
