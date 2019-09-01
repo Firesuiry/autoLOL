@@ -1,1 +1,1 @@
-{"time": 1567265313.8, "commandList": [{"name": "KeyDownChar", "key": "A", "delay": 100}, {"name": "MoveTo", "x": 1251, "y": 561, "delay": 100}, {"name": "LeftClick", "delay": 100}, {"name": "KeyUpChar", "key": "A", "delay": 100}]}
+{"time": 1567304003.9, "commandList": [{"name": "KeyDownChar", "key": "A", "delay": 100}, {"name": "MoveTo", "x": 1258, "y": 656, "delay": 100}, {"name": "LeftClick", "delay": 100}, {"name": "KeyUpChar", "key": "A", "delay": 100}]}

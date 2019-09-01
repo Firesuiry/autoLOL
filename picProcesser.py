@@ -13,7 +13,7 @@ class postionClass():
     '''
     首位 L左下边 R右上边
     次位 Base基地（结束） T上 M中 B下
-    再次 Node 召唤节点（结束） T塔
+    再次 Node 召唤节点（结束） T塔 R河道边
     再次 1高地塔（结束） 2二塔（结束） 3边塔（结束） 0门牙塔
     再次 0左门牙塔（结束） 1右门牙塔（结束）
     '''
@@ -92,6 +92,8 @@ class picProcesser():
             'LBT1':[1151, 700],
             'LBT2':[1182, 697],
             'LBT3':[1223, 700],
+            'LBR':[1243,692],
+            'RBR':[1254,680],
             'RBT3':[1262, 633],
             'RBT2':[1256, 619],
             'RBT1':[1260, 592],
@@ -100,7 +102,7 @@ class picProcesser():
             'RT00':[1247, 563],
             'RBase':[1255, 560],
         }
-        self.bottomNodeKeys = ['LBase', 'LBNode', 'LBT1', 'LBT2', 'LBT3', 'RBT3', 'RBT2', 'RBT1', 'RBNode', 'RT01', 'RT00', 'RBase']
+        self.bottomNodeKeys = ['LBase', 'LBNode', 'LBT1', 'LBT2', 'LBT3','LBR','RBR', 'RBT3', 'RBT2', 'RBT1', 'RBNode', 'RT01', 'RT00', 'RBase']
         #数据处理
         self.bottimMiddlePoint = []
         point = np.array([0,0])
@@ -179,6 +181,8 @@ class picProcesser():
         return pic
 
     def picDisplay(self,pic,saveName = ''):
+        if np.max(pic) <= 1:
+            pic = pic * 255
         cv2.imshow('pic',pic)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
@@ -214,6 +218,11 @@ class picProcesser():
         if (mapPic == 0).all():
             print('图片全为0')
             return
+
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))  # 定义结构元素
+        mapPic = cv2.morphologyEx(mapPic, cv2.MORPH_OPEN, kernel)  # 开运算
+        # self.picDisplay(mapPic,'map2')
+        # exit()
 
         lieHe = np.sum(mapPic,axis = 0)#每列求和，最后是一行
         hangHe = np.sum(mapPic,axis = 1)#每行求和，最后是一列
@@ -339,11 +348,6 @@ class picProcesser():
         pic = np.uint8((pic > 254) * 1)
         centerPoint = p.postionInSmallMapExtract(pic)
         return centerPoint
-
-    def picDisplay(self,pic):
-        cv2.imshow('image', pic)  # 第一个参数是窗口名称，是字符串。第二个参数是我们的图片
-        cv2.waitKey(0)  # 表示程序会无限制的等待用户的按键事件
-        cv2.destroyAllWindows()
 
     def determineAction(self,pic = 0):
         '''
