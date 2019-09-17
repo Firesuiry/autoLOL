@@ -13,6 +13,7 @@
 
 ##对项目感兴趣：
 可以在这个项目下联系我或者发邮件到4690734@QQ.COM 也可以加我qq
+qq群：678238200 欢迎想一起搞的小伙伴
 
 #English Version（Use Baidu Translate）
 ##The ultimate goal is:
