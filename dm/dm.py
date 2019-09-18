@@ -5,6 +5,7 @@ import os,json
 class dmBase():
     def __init__(self):
         self.id = 0
+        
 
     def getCommand(self):
         f_path = r'E:\develop\autoLOL\dm\data\{}.txt'.format(self.id)
@@ -12,7 +13,7 @@ class dmBase():
         if os.path.exists(f_path):
             with open(f_path) as f:
                 command = f.read()
-        print(command)
+        #print(command)
         return command
 
 
@@ -29,70 +30,111 @@ class dmOperater(dmBase):
         print('窗口绑定结果：%s'%dm_ret)
         if dm_ret == 0:
             return
+        self.dm.MoveWindow(hwnd,1,1)
+
         self.commandCahe = ''
+        self.commandList = []
+        self.lastCapTime = 0
 
         if not os.path.exists('screen'+str(self.id)):
             os.makedirs('screen'+str(self.id))
 
         self.mainLoop()
 
-    def mainExcuter(self):
+    def mainExcuter(self):  
+        currentTime = time.time()
+        #print('当前时间：{} 当前命令队列长度：{}'.format(currentTime,len(self.commandList)))
+        #截图部分
+        if currentTime >= self.lastCapTime + 0.1:#截图间隔0.1S
+            dm_ret = self.dm.Capture(0, 0, 2000, 2000, "screen%s/0.bmp" % self.id)
+            self.lastCapTime = currentTime // 0.1 * 0.1
+        #命令执行部分 1.已经存在命令执行
+        while(True):
+            if len(self.commandList) == 0:
+                break
+            commandDict = self.commandList[0]
+            excuteTime = commandDict.get('excuteTime',0)
+            assert excuteTime is not 0
+            if excuteTime > currentTime:
+                break
+            self.excuteCommand(commandDict)
+            del self.commandList[0]
+        #命令执行部分 2.新命令写入执行队列
         command = self.getCommand()
-        dm_ret = self.dm.Capture(0, 0, 2000, 2000, "screen%s/0.bmp" % self.id)
-        print ('cap result:{}'.format(dm_ret))
-        self.excuteCommand(command)
+        self.commandProcess(command)
+        
+        # print ('cap result:{}'.format(dm_ret))
+        
 
-    def excuteCommand(self,command):
+    def commandProcess(self,command):    
         if command == '' or command == self.commandCahe:
             return
-        self.commandCahe == command
+        print('commandProcess command:{}'.format(command))
+        self.commandCahe = command
         cDict = json.loads(command)
         newTime = time.time()
         commandTime = cDict['time']
+        excuteTime = newTime
         if newTime - commandTime > 1:
+            #不执行一秒前的命令
             return
+        if len(self.commandList)> 0:
+            lastCommandTime = self.commandList[-1].get('excuteTime',0)
+            if lastCommandTime is 0:
+                print(self.commandList[-1])
+                exit()
+            if commandTime < lastCommandTime:
+                return
 
-        commandList = cDict['commandList']
-        for commandDict in commandList:
-            #执行命令模块
-            print (commandDict)
-            key = commandDict.get('key','')
-            x = commandDict.get('x','')
-            y = commandDict.get('y', '')
-            delay = commandDict.get('delay',100)
-            name = commandDict.get('name', '')
-            if name == '':
-                continue
-            mathod = 'self.dm.{}'.format(name)
-            args = ''
-            for arg in [key,x,y]:
-                if arg != '':
-                    if args == '':
-                        args += '('
-                    else:
-                        args += ','
-                    args += '\'' + str(arg) + '\''
-            if args == '':
-                args = '()'
-            else:
-                args += ')'
-            command = mathod + args
+        else:
+            commandList = cDict['commandList']
+            for commandDict in commandList:
+                delay = commandDict.get('delay',100)
+                commandDict['excuteTime'] = excuteTime
+                excuteTime += delay / 5000
+                self.commandList.append(commandDict)
+                print('commandProcess add command:{} commandLs LEN:{}'.format(commandDict,len(self.commandList)))            
 
-            try:
-                print ('excute command:{}'.format(command))
-                eval(command)
-                time.sleep(delay/1000)
-            except Exception as e:
-                print(e)
-            finally:
-                pass
 
+    def excuteCommand(self,commandDict):
+        #执行命令模块
+        print (commandDict)
+        key = commandDict.get('key','')
+        x = commandDict.get('x','')
+        y = commandDict.get('y', '')
+        delay = commandDict.get('delay',100)
+        name = commandDict.get('name', '')
+        if name == '':
+            return
+        mathod = 'self.dm.{}'.format(name)
+        args = ''
+        for arg in [key,x,y]:
+            if arg != '':
+                if args == '':
+                    args += '('
+                else:
+                    args += ','
+                args += '\'' + str(arg) + '\''
+        if args == '':
+            args = '()'
+        else:
+            args += ')'
+        command = mathod + args
+
+        try:
+            print ('excute command:{}'.format(command))
+            eval(command)
+            time.sleep(delay/1000)
+        except Exception as e:
+            print(e)
+        finally:
+            pass
 
 
     def mainLoop(self):
         while True:
             self.mainExcuter()
-            time.sleep(0.1)
+            # time.sleep(0.01)
 
 class dmManager(dmBase):
     def __init__(self):

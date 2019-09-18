@@ -1,1 +1,1 @@
-{"time": 1568688287.5, "commandList": [{"name": "MoveTo", "x": 1202, "y": 698, "delay": 100}, {"name": "RightClick", "delay": 100}]}
+{"time": 1568794374.8, "commandList": [{"name": "MoveTo", "x": 1105, "y": 707, "delay": 100}, {"name": "RightClick", "delay": 100}]}
