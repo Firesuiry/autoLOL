@@ -240,6 +240,7 @@ class picProcesser():
 
 class smartAI():
 	def __init__(self):
+		self.models = {}
 		self.HPdigitModel_ = None
 		self.HPdigits = []
 		x = []
@@ -261,7 +262,18 @@ class smartAI():
 		:param inputData: 输入数据
 		:return: 预测数据
 		'''
-		pass
+		model = self.models.get(modelName,None)
+		if model is None:
+			model = self.addModel(modelName)
+		predictions = model.predict(inputData)
+
+		return predictions
+
+
+	def addModel(self,modelName):
+		self.models[modelName] = tf.keras.models.load_model(r'model/{}'.format(modelName))
+		return self.models[modelName]
+
 
 	def HPdigitModel(self):
 		if self.HPdigitModel_ is not None:

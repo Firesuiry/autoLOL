@@ -1,5 +1,6 @@
 from paramsExtract.HPextracter.HPextracter import hpExtract
 from paramsExtract.mapPostionExtracter.mapPostionExtracter import centerParaExtract
+from paramsExtract.MoneyExtracter.MoneyExtracter import get_charter
 
 def paramExtract(self):
 	'''
@@ -11,6 +12,8 @@ def paramExtract(self):
 	pic = self.currentPic
 	params['back'], params['postion'], params['go'] = centerParaExtract(self)
 	params['HP'] = hpExtract(self)
+	params['money'] = get_charter(self,self.elementExtract('MONEY',pic))
+	print('money:{}'.format(params['money']))
 	return params
 
 
