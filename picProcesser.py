@@ -1,3 +1,5 @@
+from paramsExtract.paramsExtracter import paramExtract
+
 import numpy as np
 import cv2
 from skimage import morphology
@@ -7,6 +9,8 @@ import time
 from PIL import Image
 import matplotlib.pyplot as plt
 import tensorflow as tf
+
+
 
 
 
@@ -26,9 +30,10 @@ class picProcesser():
 		self.postionData = {
 			'HP':[454,686,730,697],
 			'MP':[454,699,730,710],
-			'MONEY':[753,694,730,714],
+			'MONEY':[798,696,860,712],
 			'MAP':[1100,538,1279,719]
 		}
+
         #节点名称介绍
 		'''
 		首位 L左下边 R右上边
@@ -89,13 +94,6 @@ class picProcesser():
 		self.HPxieImg = cv2.imread('resource/xie.png')
 		self.HPxieImg = cv2.cvtColor(self.HPxieImg, cv2.COLOR_BGR2GRAY)
 
-	def posCaculate(self,x,y,bottom = False,top = False,middle = False):
-		if not (bottom or top or middle):
-			bottom = True
-
-		if bottom:
-			pos = [x,y]
-
 	def findPic(self,oriImg, targetImg, threshold=0.8, delay=0.5, test=False):
 		point = [0, 0]
 		h, w = targetImg.shape[:2]  # rows->h, cols->w
@@ -113,128 +111,6 @@ class picProcesser():
 				cv2.imwrite('result.png', img)
 
 			return [left_top, right_bottom]
-
-	def getCharImgs(self,pic):
-		'''
-		extrat char img from a hp or mp img
-		:param pic:the hp or mp img
-		:param add2List:
-		:return:
-		'''
-		leftTop,rightBottom = self.findPic(pic,self.HPxieImg)
-
-		# 将血条分为左右两侧
-		zuoPic = pic[:, 0:leftTop[0] - 1].copy()
-		youPic = pic[:, rightBottom[0] + 1:].copy()
-
-		# 用于判断是否该像素列为空
-		zuoLieSum = np.sum(zuoPic, axis=0)
-		youLieSum = np.sum(youPic, axis=0)
-
-		zuoLieSum = self.clearSmallConnectPoint(zuoLieSum)
-		youLieSum = self.clearSmallConnectPoint(youLieSum)
-
-		# print(zuoPic.shape,zuoLieSum.shape)
-		#     print(youLieSum)
-		plt.imshow(zuoPic)
-		#     plt.show()
-		# 开始处理右侧数字
-		blankLie = 0
-		index = 0
-		youCharImgs = []
-		charStart = -1
-		while (blankLie < 8 and index < len(youLieSum)):
-			isBlank = youLieSum[index]  # 0表示此处为空
-			# print(index,isBlank)
-			if isBlank == 0:
-				blankLie += 1
-				if charStart != -1:
-					charEnd = index
-					if charEnd - charStart > 3:
-						if charEnd - charStart < 6:
-							charEnd = charStart + 6
-						youCharImgs.append(youPic[:, charStart:charEnd])
-					# print('char start and end:',charStart,charEnd)
-					charStart = -1
-			else:
-				if charStart == -1:
-					charStart = index
-					blankLie = 0
-			index += 1
-
-		# print('开始处理左侧数字')
-		# 开始处理左侧数字
-		blankLie = 0
-		index = len(zuoLieSum) - 1
-		zuoCharImgs = []
-		charEnd = -1  # 因为是从右往左看,所以是以end为标志
-		while (blankLie < 8 and index > 0):
-			isBlank = zuoLieSum[index]
-			# print(index,isBlank)
-			if isBlank == 0:
-				blankLie += 1
-				if charEnd != -1:
-					charStart = index + 1
-					if charEnd - charStart > 3:
-						if charEnd - charStart < 6:
-							charEnd = charStart + 6
-						zuoCharImgs.append(zuoPic[:, charStart:charEnd])
-					# print('char start and end:',charStart,charEnd)
-					charEnd = -1
-			else:
-				if charEnd == -1:
-					charEnd = index + 1
-					blankLie = 0
-			index -= 1
-
-		
-
-		return [zuoCharImgs,youCharImgs]
-
-	def clearSmallConnectPoint(self,sumList):
-		# 清理在列和表中出现的一些字符间不正确链接,用于HP提取
-		# 思路是清理长段落都有值的 值为255的段落
-		connectList = []  # 检测每个列左侧有多少个已经非空白的列
-		sumList = np.array(sumList)
-		notBlankLie = 0
-		for i in range(len(sumList)):
-			connectList.append(notBlankLie)
-			if sumList[i] == 0:
-				notBlankLie = 0
-			else:
-				notBlankLie += 1
-		connectList = np.array(connectList)
-
-		assert (len(sumList) == len(connectList))
-
-		clearBools = 1 - (connectList > 4) * (sumList < 256)
-		sumList = sumList * clearBools
-
-		return sumList
-
-
-	def closePointDetact(self,point,pointList):
-		'''
-		:param point: 输入点，[x,y]，是英雄实际位置
-		:param pointList: 输入点列表 是一串点的位置
-		:return: 返回最近点的序号
-		'''
-		#point1 = point.copy()
-		#point[0] = point1[1]
-		#point[1] = point1[0]
-		#print('closePointDetact point:{}'.format(point))
-		assert (len(point) == 2)
-		#print(pointList)
-		point = np.array(point).reshape(1, 2)
-		pointList = np.array(pointList).reshape(-1, 2)
-		assert (point.shape == (1, 2))
-		assert (pointList.shape[1] == 2)
-		a = pointList - point
-		a = a * a
-		a = a[:, 0] + a[:, 1]
-		a = np.argmin(a)
-		return a
-
 
 
 	def elementExtract(self,elementName,oriPic):
@@ -270,10 +146,6 @@ class picProcesser():
 		if saveName != '':
 			cv2.imwrite('ans/'+saveName+'.png',pic)
 
-	def smallMapExtract(self,oriPic):
-		mapPic = oriPic[538:719,1100:1279]
-		return mapPic
-
 	def pointTransform(self,pointIn,map2all = False):
 		'''
 		:param pointIn: 输入坐标，【X，Y】
@@ -291,144 +163,11 @@ class picProcesser():
 		return pointIn
 
 
-	def postionInSmallMapExtract(self,mapPic):
-		#input pic is 0 and 1 matric
-		#输入是小地图那个白框的矩阵图像，所有值只有0和1
-		if np.max(mapPic) > 1:
-			print('图片数据大于1')
-		if (mapPic == 0).all():
-			print('图片全为0')
-			return
-
-		kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))  # 定义结构元素
-		mapPic = cv2.morphologyEx(mapPic, cv2.MORPH_OPEN, kernel)  # 开运算
-		# self.picDisplay(mapPic,'map2')
-		# exit()
-
-		lieHe = np.sum(mapPic,axis = 0)#每列求和，最后是一行
-		hangHe = np.sum(mapPic,axis = 1)#每行求和，最后是一列
-
-		lieKuangXianPos = []
-		hangKuangXianPos = []
-		lieAreaList = []
-		hangAreaList = []
-		for i in range(len(lieHe)):
-			if lieHe[i]> 6:
-				lieKuangXianPos.append(i)
-			elif lieHe[i]>0:
-				lieAreaList.append(i)
-
-		for i in range(len(hangHe)):
-			if hangHe[i] > 6:
-				hangKuangXianPos.append(i)
-			elif hangHe[i]>0:
-				hangAreaList.append(i)
-
-
-		# print('行坐标：%s 列坐标：%s'%(hangKuangXianPos,lieKuangXianPos))
-		# print('中心点坐标：%s'%([np.mean(hangKuangXianPos),np.mean(lieKuangXianPos)]))
-		# print(lieAreaList)
-		# print(hangAreaList)
-
-		# 行坐标：[143, 144, 170, 171] 实际为竖直坐标
-		# 列坐标：[89, 90, 137, 138] 实际为水平坐标
-		# 中心点坐标：[157.0, 113.5]
-		# 竖直坐标间距13.5 水平坐标间距24 半个矩形长度，到中心点距离
-
-
-		#为了处理部分矩形边框超出小地图范围的情况
-		centerPos = []
-		centerPos.append(np.mean(lieAreaList))#中心点横坐标
-		centerPos.append(np.mean(hangAreaList))#中心点纵坐标
-
-		hangChangdu = len(hangKuangXianPos)
-		lieChangdu = len(lieKuangXianPos)
-		hangKuangXianPos = np.array(hangKuangXianPos).reshape(1,hangChangdu)
-		lieKuangXianPos = np.array(lieKuangXianPos).reshape(1,lieChangdu)
-
-		#通过聚类算法获取边框中线位置 此处为纵坐标获取
-		zeros = np.zeros([1, hangChangdu])
-		points = np.array([hangKuangXianPos, zeros]).T.reshape(hangChangdu,2)
-		# print(points)
-		# print(points.shape)
-		ms = MeanShift(bandwidth=2)
-		ms.fit(points)
-
-		cluster_centers = ms.cluster_centers_
-		print(cluster_centers)
-		ys = []
-		for i in cluster_centers:
-			for j in i:
-				if j!=0:
-					ys.append(j)
-
-		#通过聚类算法获取边框中线位置 此处为横坐标获取
-		zeros = np.zeros([1, lieChangdu])
-		points = np.array([lieKuangXianPos, zeros]).T.reshape(lieChangdu,2)
-		# print(points)
-		# print(points.shape)
-		ms = MeanShift(bandwidth=4)
-		ms.fit(points)
-
-		cluster_centers = ms.cluster_centers_
-		# print(cluster_centers)
-		xs = []
-		for i in cluster_centers:
-			for j in i:
-				if j!=0:
-					xs.append(j)
-
-		centerPoint = [0,0]
-
-		if len(xs) == 2:
-			centerPoint[0] = np.mean(xs)
-		elif len(xs) == 1:
-			if xs[0] > centerPos[0]:
-				centerPoint[0] = xs[0] - 24
-			else:
-				centerPoint[0] = xs[0] + 24
-		else:
-			print('err 聚类获取点非1，2个 xs：%s'%(xs))
-
-		if len(ys) == 2:
-			centerPoint[1] = np.mean(ys)
-		elif len(ys) == 1:
-			if ys[0] > centerPos[1]:
-				centerPoint[1] = ys[0] - 13.5
-			else:
-				centerPoint[1] = ys[0] + 13.5
-		else:
-			print('err 聚类获取点非1，2个 ys：%s'%(ys))
-
-		# print('估计中心点：%s 精确中心点：%s'%(centerPos,centerPoint))
-		return centerPoint
-
 	def picSize(self,img):
 		height = len(img)
 		width = len(img[0])
 		print('图片大小%dX%d' % (width, height))
 
-	def skeletonGene(self,img):
-		skeleton =morphology.skeletonize(img)
-		return skeleton
-
-	def postionExtract(self,pic = 0):
-		'''
-		封装提取位置
-		:param pic: 全局图像
-		:return: 位置
-		'''
-		if pic == 0:
-			pic = self.currentPic
-		pic = p.smallMapExtract(pic)
-		print(np.max(pic),np.min(pic))
-
-		pic = cv2.cvtColor(pic, cv2.COLOR_BGR2GRAY)
-		print(np.max(pic),np.min(pic))
-
-		pic = np.uint8((pic > 254) * 1)
-		centerPoint = p.postionInSmallMapExtract(pic)
-		return centerPoint
 
 	def determineAction(self,params = {}):
 		'''
@@ -453,99 +192,6 @@ class picProcesser():
 			'go':go
 		}
 		return action
-
-	def centerParaExtract(self):
-		centerPoint = self.postionExtract()
-		print('after extract:{}'.format(centerPoint))
-		centerPoint = self.pointTransform(centerPoint,True)
-		print('after Transform:{}'.format(centerPoint))
-		print(centerPoint)
-		closePointIndex = self.closePointDetact(centerPoint,self.bottomNodeList)
-		print('最近点序号：{}'.format(closePointIndex))
-		backIndex = closePointIndex - 1
-		goIndex = closePointIndex + 1
-		if backIndex < 0:
-			backIndex = 0
-		l = len(self.bottomNodeList)
-		if goIndex > l:
-			goIndex = l
-		return self.bottomNodeList[backIndex],centerPoint,self.bottomNodeList[goIndex]
-
-	def paramExtract(self,pic = 0):
-		'''
-		通过游戏图像获取游戏动作执行过程中所需的参数
-		:param pic:
-		:return:动作等所需参数
-		'''
-		params = {}
-		pic = self.currentPic
-		params['back'],params['postion'],params['go'] = self.centerParaExtract()
-		params['HP'] = self.hpExtract()
-		return params
-
-	def hpExtract(self):
-		'''
-		提取HP的百分比值，来源为self.currentPic
-		返回值为0-1浮点数
-		识别失败将返回None
-		'''
-		pic = cv2.cvtColor(self.currentPic, cv2.COLOR_BGR2GRAY)
-		pic = np.uint8(pic>150)
-
-		hpImg = self.elementExtract('HP',pic)
-		zuoImgs,youImgs = self.getCharImgs(hpImg)
-		for img in zuoImgs:
-			print(img.shape)
-		zuoNums = self.ai.hpDightRecognizate(zuoImgs)
-		youNums = self.ai.hpDightRecognizate(youImgs)
-		zuo = 0
-		you = 0
-
-		for num in zuoNums[::-1]:
-			zuo *= 10
-			zuo += num
-
-		for num in youNums:
-			you *= 10
-			you += num
-
-		print('zuo:{} you:{} zuoNums:{} youNums:{}'.format(zuo,you,zuoNums,youNums))
-
-		percent = -1
-		try:
-			percent = zuo / you
-		except:
-			pass
-		print('the percent of HP:{}'.format(percent))
-		return percent
-
-
-
-
-
-
-	def colorDelate(self,pic,green = True,blue = True):
-		b = pic[:,:,0]
-		g = pic[:,:,1]
-		r = pic[:,:,2]
-
-
-		if green:
-			clearBool = 1 - np.uint8(g - r > 40) * np.uint8(g - b > 40)
-			pic[:, :, 0] *= clearBool
-			pic[:, :, 1] *= clearBool
-			pic[:, :, 2] *= clearBool
-
-		if blue:
-			clearBool = 1 - np.uint8(b - r > 30) * np.uint8(b - g > 30)
-			pic[:, :, 0] *= clearBool
-			pic[:, :, 1] *= clearBool
-			pic[:, :, 2] *= clearBool
-
-
-
-		return pic
-
 
 	def actionExcute(self,action,params):
 		'''
@@ -578,7 +224,7 @@ class picProcesser():
 		if same:
 			return
 		self.currentPic = pic
-		params = self.paramExtract()
+		params = paramExtract(self)
 		action = self.determineAction(params)
 		self.actionExcute(action,params)
 
@@ -609,6 +255,14 @@ class smartAI():
 		self.x = np.array(x)
 		print(self.x.shape)
 
+	def useModel(self,modelName,inputData):
+		'''
+		使用模型预测值
+		:param modelName: 模型名称
+		:param inputData: 输入数据
+		:return: 预测数据
+		'''
+		pass
 
 
 	def HPdigitModel(self):
@@ -664,30 +318,26 @@ class smartAI():
 
 
 
-def HPextract():
-	print(p.nodesPostions.keys())
+def MONEYextract():
+	p = picProcesser()
+	#print(p.nodesPostions.keys())
 	i = 1
 	while(True):
 		pic = p.loadPic(r'E:\develop\autoLOLres\ans\screen{}.bmp'.format(i))
 		assert pic is not None
-		pic = p.colorDelate(pic)
-		pic = cv2.cvtColor(pic, cv2.COLOR_BGR2GRAY)
-		pic = np.uint8(pic>150)
-		pic = p.elementExtract('HP',pic)
-		p.picDisplay(pic,'HP{}'.format(i),True,True)
+		#pic = p.colorDelate(pic)
+		#pic = cv2.cvtColor(pic, cv2.COLOR_BGR2GRAY)
+		#pic = np.uint8(pic>150)
+		pic = p.elementExtract('MONEY',pic)
+		print(pic.shape)
+		p.picDisplay(pic,'MONEY{}'.format(i),True,True)
 		i += 1
 
 
 if __name__ == "__main__":
-	 p = picProcesser()
-	 p.mainLoop()
-	 exit()
-	#AI = smartAI()
-	#p = picProcesser()
-	#i = 1000
-	#pic = p.loadPic(r'E:\develop\autoLOLres\ans\screen{}.bmp'.format(i))
-	#cv2.imwrite('logOut/0.png',pic)
-	#p.currentPic = pic
-	#p.hpExtract()
+	p = picProcesser()
+	p.mainLoop()
+	exit()
+
 
 
