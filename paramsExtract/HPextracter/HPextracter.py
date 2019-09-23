@@ -109,8 +109,7 @@ def hpExtract(self):
 
 	hpImg = self.elementExtract('HP', pic)
 	zuoImgs, youImgs = getCharImgs(self,hpImg)
-	for img in zuoImgs:
-		print(img.shape)
+
 	zuoNums = self.ai.hpDightRecognizate(zuoImgs)
 	youNums = self.ai.hpDightRecognizate(youImgs)
 	zuo = 0

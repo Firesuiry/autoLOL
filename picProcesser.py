@@ -242,7 +242,6 @@ class smartAI():
 	def __init__(self):
 		self.HPdigitModel_ = None
 		self.HPdigits = []
-
 		x = []
 		i = 0
 		while True:
@@ -263,7 +262,6 @@ class smartAI():
 		:return: 预测数据
 		'''
 		pass
-
 
 	def HPdigitModel(self):
 		if self.HPdigitModel_ is not None:
@@ -306,32 +304,6 @@ class smartAI():
 			ansLs.append(ans)
 
 		return ansLs
-
-
-
-
-
-
-
-
-
-
-
-
-def MONEYextract():
-	p = picProcesser()
-	#print(p.nodesPostions.keys())
-	i = 1
-	while(True):
-		pic = p.loadPic(r'E:\develop\autoLOLres\ans\screen{}.bmp'.format(i))
-		assert pic is not None
-		#pic = p.colorDelate(pic)
-		#pic = cv2.cvtColor(pic, cv2.COLOR_BGR2GRAY)
-		#pic = np.uint8(pic>150)
-		pic = p.elementExtract('MONEY',pic)
-		print(pic.shape)
-		p.picDisplay(pic,'MONEY{}'.format(i),True,True)
-		i += 1
 
 
 if __name__ == "__main__":

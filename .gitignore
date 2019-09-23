@@ -3,4 +3,5 @@
 /dm/ans1/
 /.vs/
 /__pycache__/
-
+/jupyter/
+/.idea/
