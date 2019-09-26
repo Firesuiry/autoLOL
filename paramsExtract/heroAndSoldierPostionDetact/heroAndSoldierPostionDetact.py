@@ -4,6 +4,7 @@ import numpy as np
 
 def findPics(oriImg, targetImg, mask = None, threshold=0.8, delay=0.5, test=False):
 	h, w = targetImg.shape[:2]  # rows->h, cols->w
+	h2, w2 = oriImg.shape[:2]  # rows->h, cols->w
 	res = cv2.matchTemplate(oriImg, targetImg, cv2.TM_CCORR_NORMED, mask=mask)
 	img = oriImg.copy()
 
@@ -11,28 +12,27 @@ def findPics(oriImg, targetImg, mask = None, threshold=0.8, delay=0.5, test=Fals
 		min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
 		print(max_val)
 
-		horizen = range(res.shape[0])
-		vertical = range(res.shape[1])
+		horizen0 = np.max(0,max_loc[0]-w//2)
+		horizen1 = np.min(w2,max_loc[0]+w//2)
+		vertical0 = np.max(0,max_loc[1]-h//2)
+		vertical1 = np.min(h2,max_loc[1]+w//2)
 
-		horizen = np.abs(horizen - left_top[0]) < w // 2
-		vertical = np.abs(vertical - left_top[1]) < h // 2
+		res[horizen0:horizen1,vertical0,vertical1] = 0
 
-
-		res[horizen,vertical] = 0
+		postions = []
 
 		if max_val > threshold:
 			left_top = max_loc  # 左上角
 			right_bottom = (left_top[0] + w, left_top[1] + h)  # 右下角
 			if test:
-				# print(maxValue)
 				cv2.rectangle(img, left_top, right_bottom, 255, 1)  # 画出矩形位置
-
+			postions.append([left_top, right_bottom])
 		else:
 			break
 	if test:
 		cv2.imwrite('result.png', img)
 
-	return [left_top, right_bottom]
+	return postions
 
 
 def findPic(oriImg, targetImg, mask=None, threshold=0.8, test=False):
