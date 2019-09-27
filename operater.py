@@ -1,19 +1,17 @@
+# -*- coding: utf-8 -*-
 import time
-
 import json, os
+from dm.MainCommucation import MainCommucation
 
 
-class operater():
+class operater(MainCommucation):
 	def __init__(self, id=1):
 		self.id = id
 		self.commandCahe = {
 			'time': 0,
 			'commandList': []
 		}
-		self.bottomNodeList = []
-
-	def loadBottomNodeList(self, bottomNodeList):
-		pass
+		self.start()
 
 	def MoveToMapPostion(self, postionOnMap, attack=True):
 		'''
@@ -98,6 +96,40 @@ class operater():
 			'delay': delay
 		}
 		self.commandCahe['commandList'].append(command)
+
+	def excuteCommand(self, commandDict):
+		# 执行命令模块
+		print (commandDict)
+		key = commandDict.get('key', '')
+		x = commandDict.get('x', '')
+		y = commandDict.get('y', '')
+		delay = commandDict.get('delay', 100)
+		name = commandDict.get('name', '')
+		if name == '':
+			return
+		mathod = 'self.{}'.format(name)
+		args = ''
+		for arg in [key, x, y]:
+			if arg != '':
+				if args == '':
+					args += '('
+				else:
+					args += ','
+				args += '\'' + str(arg) + '\''
+		if args == '':
+			args = '()'
+		else:
+			args += ')'
+		command = mathod + args
+
+		try:
+			print ('excute command:{}'.format(command))
+			eval(command)
+			time.sleep(delay / 1000)
+		except Exception as e:
+			print(e)
+		finally:
+			pass
 
 
 if __name__ == "__main__":
