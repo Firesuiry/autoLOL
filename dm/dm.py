@@ -63,7 +63,9 @@ class dmManager(dmBase):
 		self.checkHwnd()
 
 	def checkHwnd(self):
-		hwnds = self.dm.EnumWindow(0, "League of Legends (TM) Client - [Windows 7 x64]", "", 1 + 4 + 8 + 16)
+		windowName = "League of Legends (TM) Client - [Windows 7 x64]"
+		#windowName =
+		hwnds = self.dm.EnumWindow(0, windowName, "", 1 + 4 + 8 + 16)
 		print('hwnds:',hwnds)
 		print(type(hwnds))
 		if isinstance (hwnds,str):

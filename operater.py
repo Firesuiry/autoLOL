@@ -11,6 +11,7 @@ class operater(MainCommucation):
 			'time': 0,
 			'commandList': []
 		}
+		super(operater, self).__init__()
 		self.start()
 
 	def MoveToMapPostion(self, postionOnMap, attack=True):
