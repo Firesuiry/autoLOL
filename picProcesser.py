@@ -230,13 +230,18 @@ class picProcesser():
 
 	def mainLoop(self):
 		while(True):
-			ret = self.operater.capture()
+			newT = time.time()
+			ret = self.operater.Capture(0, 0, 2000, 2000, r"E:\develop\autoLOL\dm\screen1/0.bmp")
+			print('截图结果：{}'.format(ret))
 			if ret == 0:
 				print('capture fail')
 				time.sleep(1)
-			pic = self.loadPic('dm/screen1/0.bmp')
+			print('截图完成 花费时间：{}'.format(time.time() - newT))
+			pic = self.loadPic(r'E:\develop\autoLOL\dm\screen1/0.bmp')
+			print('读取图片完成 花费时间：{}'.format(time.time() - newT))
 			if pic is not None:
 				self.getPic(pic)
+				print('命令发送完成 花费时间：{}'.format(time.time() - newT))
 			else:
 				time.sleep(0.1)
 

@@ -2,6 +2,7 @@
 import DmCommucation as dc
 import time
 import os, json
+import win32com.client
 
 
 class dmBase():
@@ -38,6 +39,7 @@ class dmOperater(dmBase, dc.DmCommucation):
 
 	def capture(self):
 		dm_ret = self.dm.Capture(0, 0, 2000, 2000, "screen%s/0.bmp" % self.id)
+		print('截图结果：{}'.format(dm_ret))
 
 	def __getattr__(self, item):
 		def dock(*args, **kwargs):

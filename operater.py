@@ -28,26 +28,6 @@ class operater(MainCommucation):
 		else:
 			self.addMouseCommandToJson(postionOnMap[0], postionOnMap[1], rightClick=True)
 
-	def clearCommandCahe(self):
-		self.commandCahe = {
-			'time': 0,
-			'commandList': []
-		}
-
-	def sendCommand(self):
-		f_path = r'E:\develop\autoLOL\dm\data\{}.txt'.format(self.id)
-		self.commandCahe['time'] = round(time.time(), 1)
-		delayTime = 0
-		for command in self.commandCahe['commandList']:
-			delayTime += command.get('delay', 100)
-		command = json.dumps(self.commandCahe)
-		self.clearCommandCahe()
-		with open(f_path, 'w') as f:
-			command = f.write(command)
-
-		# print('命令写入完成，等待{}毫秒'.format(delayTime))
-		time.sleep(delayTime / 1000)
-
 	def addKeyboardCommandToJson(self, keyChar, delay=100, Down=False, Up=False):
 		mathodName = 'KeyPressChar'
 
@@ -62,7 +42,7 @@ class operater(MainCommucation):
 			'key': keyChar,
 			'delay': delay
 		}
-		self.commandCahe['commandList'].append(command)
+		self.excuteCommand(command)
 
 
 	def addMouseCommandToJson(self, x=-1, y=-1, liftClick=False, rightClick=False, delay=100):
@@ -83,7 +63,7 @@ class operater(MainCommucation):
 				'y': int(y),
 				'delay': delay
 			}
-			self.commandCahe['commandList'].append(command)
+			self.excuteCommand(command)
 
 		mathodName = ''
 		if liftClick:
@@ -96,7 +76,7 @@ class operater(MainCommucation):
 			'name': mathodName,
 			'delay': delay
 		}
-		self.commandCahe['commandList'].append(command)
+		self.excuteCommand(command)
 
 	def excuteCommand(self, commandDict):
 		# 执行命令模块
@@ -124,9 +104,9 @@ class operater(MainCommucation):
 		command = mathod + args
 
 		try:
-			print ('excute command:{}'.format(command))
+			print('excute command:{}'.format(command))
 			eval(command)
-			time.sleep(delay / 1000)
+			#time.sleep(delay / 1000)
 		except Exception as e:
 			print(e)
 		finally:

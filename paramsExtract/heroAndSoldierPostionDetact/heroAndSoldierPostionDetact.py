@@ -17,7 +17,6 @@ def findPics(oriImg, targetImg, mask = None, threshold=0.8, delay=0.5, test=Fals
 		horizen = np.abs(horizen - left_top[0]) < w // 2
 		vertical = np.abs(vertical - left_top[1]) < h // 2
 
-
 		res[horizen,vertical] = 0
 
 		if max_val > threshold:
@@ -26,7 +25,6 @@ def findPics(oriImg, targetImg, mask = None, threshold=0.8, delay=0.5, test=Fals
 			if test:
 				# print(maxValue)
 				cv2.rectangle(img, left_top, right_bottom, 255, 1)  # 画出矩形位置
-
 		else:
 			break
 	if test:
