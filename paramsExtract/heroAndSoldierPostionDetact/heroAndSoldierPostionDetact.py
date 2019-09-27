@@ -61,6 +61,6 @@ if __name__ == "__main__":
 	img0 = cv2.imread(r'E:\develop\autoLOLres\ans\screen779.bmp')
 
 
-	findPic(img0, target, None, test=True)
+	findPics(img0, target, mask, test=True)
 
-	findPic(img0, target, mask, test=True)
+
