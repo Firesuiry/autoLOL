@@ -1,5 +1,5 @@
+# -*- coding: utf-8 -*-
 from paramsExtract.paramsExtracter import paramExtract
-
 import numpy as np
 import cv2
 from skimage import morphology
@@ -34,14 +34,14 @@ class picProcesser():
 			'MAP':[1100,538,1279,719]
 		}
 
-        #节点名称介绍
+		#节点名称介绍
 		'''
 		首位 L左下边 R右上边
 		次位 Base基地（结束） T上 M中 B下
 		再次 Node 召唤节点（结束） T塔 R河道边
 		再次 1高地塔（结束） 2二塔（结束） 3边塔（结束） 0门牙塔
 		再次 0左门牙塔（结束） 1右门牙塔（结束）
-		'''
+'''
 		self.nodesPostions = {
 			'LSpring':[1105,707],
 			'LBase':[1119,694],
@@ -230,10 +230,18 @@ class picProcesser():
 
 	def mainLoop(self):
 		while(True):
-		#if True:
-			pic = self.loadPic('dm/screen1/0.bmp')
+			newT = time.time()
+			ret = self.operater.Capture(0, 0, 2000, 2000, r"E:\develop\autoLOL\dm\screen1/0.bmp")
+			print('截图结果：{}'.format(ret))
+			if ret == 0:
+				print('capture fail')
+				time.sleep(1)
+			print('截图完成 花费时间：{}'.format(time.time() - newT))
+			pic = self.loadPic(r'E:\develop\autoLOL\dm\screen1/0.bmp')
+			print('读取图片完成 花费时间：{}'.format(time.time() - newT))
 			if pic is not None:
 				self.getPic(pic)
+				print('命令发送完成 花费时间：{}'.format(time.time() - newT))
 			else:
 				time.sleep(0.1)
 
