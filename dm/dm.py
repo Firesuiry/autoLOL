@@ -3,7 +3,7 @@ import DmCommucation as dc
 import time
 import os, json
 import win32com.client
-
+import sys
 
 class dmBase():
 	def __init__(self):
@@ -82,5 +82,8 @@ class dmManager(dmBase):
 				self.operaterDict[hwnd] = opDict
 
 if __name__ == '__main__':
-	dm = dmManager()
+	if len(sys.argv) == 1:
+		dm = dmManager()
+	else:
+		windowName = "League of Legends (TM) Client"
 
