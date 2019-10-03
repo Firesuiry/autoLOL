@@ -85,7 +85,7 @@ if __name__ == '__main__':
 	if len(sys.argv) == 1:
 		dm = dmManager()
 	else:
-		print (sys.argv)
+		print(sys.argv)
 		if sys.argv[1] == '1':
 			windowName = "League of Legends (TM) Client"
 		else:

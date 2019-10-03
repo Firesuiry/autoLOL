@@ -9,6 +9,7 @@ import time
 from PIL import Image
 import matplotlib.pyplot as plt
 import tensorflow as tf
+from reviewAndTrain.dataStore import dataStore
 
 
 
@@ -18,6 +19,7 @@ class picProcesser():
 	def __init__(self):
 		self.operater = operater()
 		self.ai = smartAI()
+		self.ds = dataStore()
 		self.dataInit()
 
 	def dataInit(self):
@@ -226,6 +228,7 @@ class picProcesser():
 		self.currentPic = pic
 		params = paramExtract(self)
 		action = self.determineAction(params)
+		self.ds.storeResult(pic,params,action)
 		self.actionExcute(action,params)
 
 	def mainLoop(self):
