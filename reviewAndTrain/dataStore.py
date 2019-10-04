@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import json,cv2,os
+import numpy as np
+
 
 
 class dataStore():
@@ -27,6 +29,7 @@ class dataStore():
 			'actions':actions,
 			'gameID':self.id
 		}
+
 		inforStr = json.dumps(information)
 		self.txtFile.write(inforStr + '*fenge*')
 		cv2.imwrite(self.filesLocation + '{}.png'.format(self.picIndex),pic)

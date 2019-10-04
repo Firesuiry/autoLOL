@@ -7,7 +7,7 @@ from picProcesser import picProcesser
 p = picProcesser(test=True)
 if __name__ == '__main__':
 	if len(sys.argv) == 1:
-		gameIndex = 9
+		exit()
 	else:
 		gameIndex = sys.argv[1]
 
@@ -25,8 +25,7 @@ if __name__ == '__main__':
 	for s in ss:
 		if s is not '':
 			dic = json.loads(s)
-			if dic['params']['HP'] > 10:
+			if dic['params']['HP'] > 1:
 				print(dic['file'],dic['params']['HP'])
 				img =cv2.imread(path + '{}.png'.format(dic['file']))
-				print(img.shape)
 				p.getPic(img)
