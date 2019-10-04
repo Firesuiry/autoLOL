@@ -30,8 +30,10 @@ if __name__ == '__main__':
 	# 			img =cv2.imread(path + '{}.png'.format(dic['file']))
 	# 			print(img.shape)
 	# 			p.getPic(img)
-	for i in range(10):
-		index = i * 50 + 13
-		print(index)
-		img = cv2.imread(r'E:\develop\autoLOL\ans\game9\{}.png'.format(index))
-		p.getPic(img)
+
+	# for i in range(10):
+	# index = i * 50 + 13
+	index = 200
+	print(index)
+	img = cv2.imread(r'E:\develop\autoLOL\ans\game9\{}.png'.format(index))
+	p.getPic(img)

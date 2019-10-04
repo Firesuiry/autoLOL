@@ -22,7 +22,7 @@ def clearSmallConnectPoint(self, sumList):
 
 	return sumList
 
-def HPExtract(oriPic):
+def HpPicExtract(oriPic):
 	'''
 	从图片中提取血条
 	:param oriPic: 原始图片 格式cv2图片
@@ -162,13 +162,16 @@ def hpExtract2(self,pic = None):
 def hpExtract(self,pic = None):
 	if pic is None:
 		pic = self.currentPic
-	imgBGR = pic
+	imgBGR = HpPicExtract(pic)
 	b = imgBGR[:, :, 0]
 	g = imgBGR[:, :, 1]
 	r = imgBGR[:, :, 2]
 	greenbgr = np.where(g-r>30) and np.where(g-b>30)
 	b[:, :] = 0
 	b[greenbgr] = 1
+	outPic = np.zeros_like(b)
+	b[greenbgr] = 255
+	cv2.imwrite('res.png',imgBGR)
 	green = np.sum(b, axis=0)
 	green = (green > 0)
 	hp = np.sum(green)
@@ -184,22 +187,8 @@ class p:
 if __name__ == '__main__':
 	i = 1
 	while(True):
-		imgBGR = cv2.imread(r'E:\develop\autoLOL\ans\game9\{}.png'.format(i))
-		if imgBGR is None:
-			break
-		print(i)
-		imgBGR0 = HPExtract(imgBGR)
-		imgBGR = imgBGR0.copy()
-		b = imgBGR[:,:,0]
-		g = imgBGR[:,:,1]
-		r = imgBGR[:,:,2]
-		greenbgr = np.where(g-r>30) and np.where(g-b>30)
-		b[:,:] = 0
-		b[greenbgr] = 1
-		green = np.sum(b,axis=0)
-		green = (green>0)
-		hp = np.sum(green)
-		hp = hp / green.shape[0]
-		print(hp)
-
+		imgBGR = cv2.imread(r'E:\develop\autoLOL\ans\game0\{}.png'.format(i))
+		imgBGR = HpPicExtract(imgBGR)
+		hp = hpExtract(None,imgBGR)
+		print(i,hp)
 		i += 1

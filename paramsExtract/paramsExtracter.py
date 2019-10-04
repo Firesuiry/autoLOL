@@ -13,9 +13,13 @@ def paramExtract(self):
 	params = {}
 	pic = self.currentPic
 	params['back'], params['postion'], params['go'] = centerParaExtract(self)
+
 	params['HP'] = hpExtract(self)
+
 	moneyPic = self.elementExtract('MONEY',pic)
+
 	params['money'] = get_charter(self,moneyPic)
+
 	print('money:{}'.format(params['money']))
 	return params
 

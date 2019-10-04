@@ -219,9 +219,13 @@ class picProcesser():
 		if same:
 			return
 		self.currentPic = pic
+		# cv2.imwrite('1.png', pic)
 		params = paramExtract(self)
+		# cv2.imwrite('2.png', pic)
 		action = self.determineAction(params)
+		# cv2.imwrite('3.png', pic)
 		self.ds.storeResult(pic,params,action)
+		# cv2.imwrite('4.png', pic)
 		self.actionExcute(action,params)
 
 	def mainLoop(self):
