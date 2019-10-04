@@ -20,7 +20,7 @@ def get_charter(self:Any,pic: np.array) -> int:
 	"""通过取阈值来得到的二值化图像，再通过是否存在像素点来分割图像"""
 	"""返回值:分割图像的numpy数组"""
 	try:
-		img = cv2.cvtColor(pic, cv2.COLOR_RGB2GRAY)
+		img = cv2.cvtColor(pic, cv2.COLOR_BGR2GRAY)
 		_, det = cv2.threshold(img, 200, 255, cv2.THRESH_BINARY)
 		det = RemoveZero(det)
 		pre_value = True
