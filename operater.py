@@ -5,14 +5,16 @@ from dm.MainCommucation import MainCommucation
 
 
 class operater(MainCommucation):
-	def __init__(self, id=1):
+	def __init__(self, id=1,test = False):
 		self.id = id
+		self.test = test
 		self.commandCahe = {
 			'time': 0,
 			'commandList': []
 		}
-		super(operater, self).__init__()
-		self.start()
+		if not test:
+			super(operater, self).__init__()
+			self.start()
 
 	def MoveToMapPostion(self, postionOnMap, attack=True):
 		'''
@@ -79,8 +81,10 @@ class operater(MainCommucation):
 		self.excuteCommand(command)
 
 	def excuteCommand(self, commandDict):
+		#print(commandDict)
+		if self.test:
+			return
 		# 执行命令模块
-		print (commandDict)
 		key = commandDict.get('key', '')
 		x = commandDict.get('x', '')
 		y = commandDict.get('y', '')

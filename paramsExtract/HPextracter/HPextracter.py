@@ -22,6 +22,33 @@ def clearSmallConnectPoint(self, sumList):
 
 	return sumList
 
+def HpPicExtract(oriPic):
+	'''
+	从图片中提取血条
+	:param oriPic: 原始图片 格式cv2图片
+	:return: 返回血条，格式cv2图片
+	'''
+	targetArea = [454,686,730,697]
+	pic = oriPic[targetArea[1]:targetArea[3], targetArea[0]:targetArea[2]]
+	return pic
+
+def findPic(oriImg, targetImg, threshold=0.8, delay=0.5, test=False):
+	point = [0, 0]
+	h, w = targetImg.shape[:2]  # rows->h, cols->w
+	res = cv2.matchTemplate(oriImg, targetImg, cv2.TM_CCOEFF_NORMED)
+	min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
+	maxValue = np.max(res)
+	# print(maxValue)
+	if maxValue > threshold or True:
+		left_top = max_loc  # 左上角
+		right_bottom = (left_top[0] + w, left_top[1] + h)  # 右下角
+		if test:
+			# print(maxValue)
+			img = oriImg.copy()
+			cv2.rectangle(img, left_top, right_bottom, 255, 1)  # 画出矩形位置
+			cv2.imwrite('result.png', img)
+
+		return [left_top, right_bottom]
 
 def getCharImgs(self, pic):
 	'''
@@ -30,7 +57,7 @@ def getCharImgs(self, pic):
 	:param add2List:
 	:return:
 	'''
-	leftTop, rightBottom = self.findPic(pic, self.HPxieImg)
+	leftTop, rightBottom = findPic(pic, self.HPxieImg)
 
 	# 将血条分为左右两侧
 	zuoPic = pic[:, 0:leftTop[0] - 1].copy()
@@ -43,10 +70,6 @@ def getCharImgs(self, pic):
 	zuoLieSum = clearSmallConnectPoint(self,zuoLieSum)
 	youLieSum = clearSmallConnectPoint(self,youLieSum)
 
-	# print(zuoPic.shape,zuoLieSum.shape)
-	#     print(youLieSum)
-	#plt.imshow(zuoPic)
-	#     plt.show()
 	# 开始处理右侧数字
 	blankLie = 0
 	index = 0
@@ -98,16 +121,19 @@ def getCharImgs(self, pic):
 
 	return [zuoCharImgs, youCharImgs]
 
-def hpExtract(self):
+
+def hpExtract2(self,pic = None):
 	'''
 	提取HP的百分比值，来源为self.currentPic
 	返回值为0-1浮点数
 	识别失败将返回None
 	'''
-	pic = cv2.cvtColor(self.currentPic, cv2.COLOR_BGR2GRAY)
+	if pic is None:
+		pic = self.currentPic
+	pic = cv2.cvtColor(pic, cv2.COLOR_BGR2GRAY)
 	pic = np.uint8(pic > 150)
 
-	hpImg = self.elementExtract('HP', pic)
+	hpImg = HPExtract(pic)
 	zuoImgs, youImgs = getCharImgs(self,hpImg)
 
 	zuoNums = self.ai.hpDightRecognizate(zuoImgs)
@@ -123,12 +149,46 @@ def hpExtract(self):
 		you *= 10
 		you += num
 
-	#print('zuo:{} you:{} zuoNums:{} youNums:{}'.format(zuo, you, zuoNums, youNums))
+	print('zuo:{} you:{} zuoNums:{} youNums:{}'.format(zuo, you, zuoNums, youNums))
 
 	percent = -1
 	try:
 		percent = zuo / you
 	except:
 		pass
-	print('the percent of HP:{}'.format(percent))
+	print('the percent of HP:{} zuo:{} you:{}'.format(percent,zuo,you))
 	return percent
+
+def hpExtract(self,pic = None):
+	if pic is None:
+		pic = self.currentPic
+	imgBGR = HpPicExtract(pic)
+	b = imgBGR[:, :, 0]
+	g = imgBGR[:, :, 1]
+	r = imgBGR[:, :, 2]
+	greenbgr = np.where(g-r>30) and np.where(g-b>30)
+	b[:, :] = 0
+	b[greenbgr] = 1
+	outPic = np.zeros_like(b)
+	b[greenbgr] = 255
+	cv2.imwrite('res.png',imgBGR)
+	green = np.sum(b, axis=0)
+	green = (green > 0)
+	hp = np.sum(green)
+	hp = hp / green.shape[0]
+	print('the percent of HP:{}'.format(hp))
+	return hp
+
+class p:
+	def __init__(self):
+		self.HPxieImg = cv2.imread(r'E:\develop\autoLOL\resource\xie.png')
+		self.HPxieImg = cv2.cvtColor(self.HPxieImg, cv2.COLOR_BGR2GRAY)
+
+if __name__ == '__main__':
+	i = 1
+	while(True):
+		imgBGR = cv2.imread(r'E:\develop\autoLOL\ans\game0\{}.png'.format(i))
+		imgBGR = HpPicExtract(imgBGR)
+		hp = hpExtract(None,imgBGR)
+		print(i,hp)
+		i += 1

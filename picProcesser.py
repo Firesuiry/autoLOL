@@ -9,15 +9,17 @@ import time
 from PIL import Image
 import matplotlib.pyplot as plt
 import tensorflow as tf
+from reviewAndTrain.dataStore import dataStore
 
 
 
 
 
 class picProcesser():
-	def __init__(self):
-		self.operater = operater()
+	def __init__(self,test = False):
+		self.operater = operater(test=test)
 		self.ai = smartAI()
+		self.ds = dataStore()
 		self.dataInit()
 
 	def dataInit(self):
@@ -100,12 +102,12 @@ class picProcesser():
 		res = cv2.matchTemplate(oriImg, targetImg, cv2.TM_CCOEFF_NORMED)
 		min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
 		maxValue = np.max(res)
-		# print(maxValue)
+
 		if maxValue > threshold or True:
 			left_top = max_loc  # 左上角
 			right_bottom = (left_top[0] + w, left_top[1] + h)  # 右下角
 			if test:
-				# print(maxValue)
+
 				img = oriImg.copy()
 				cv2.rectangle(img, left_top, right_bottom, 255, 1)  # 画出矩形位置
 				cv2.imwrite('result.png', img)
@@ -120,11 +122,12 @@ class picProcesser():
 		:param oriPic: 原始图片 格式cv2图片
 		:return: 返回地图，格式cv2图片
 		'''
+
 		print ('elementExtract elment:{}'.format(elementName))
 		targetArea = self.postionData.get(elementName,None)
 		assert targetArea is not None
-		print (targetArea)
 		pic = oriPic[targetArea[1]:targetArea[3], targetArea[0]:targetArea[2]]
+		print(pic.shape)
 		return pic
 
 	def loadPic(self,path= 'res/Screen01.png'):
@@ -163,16 +166,9 @@ class picProcesser():
 		return pointIn
 
 
-	def picSize(self,img):
-		height = len(img)
-		width = len(img[0])
-		print('图片大小%dX%d' % (width, height))
-
-
 	def determineAction(self,params = {}):
 		'''
 		通过输入图片决定所需动作 局势检测等在此实现
-
 		:param pic: 当前完整图片
 		:return: 动作字典
 		'''
@@ -209,7 +205,6 @@ class picProcesser():
 		targetPostion = params.get(targetPostionName,None)
 		if targetPostion is not None:
 			self.operater.MoveToMapPostion(targetPostion,targetPostionName == 'go')
-			self.operater.sendCommand()
 
 	def getPic(self,pic):
 		'''
@@ -217,28 +212,33 @@ class picProcesser():
 		:param pic:游戏全图
 		:return:
 		'''
-		print(pic.shape)
+
 		assert (pic.shape == (720,1280,3))
 		same = (pic == self.currentPic).all()
 		print('获取图片 重复判断结果：{}'.format(same))
 		if same:
 			return
 		self.currentPic = pic
+		# cv2.imwrite('1.png', pic)
 		params = paramExtract(self)
+		# cv2.imwrite('2.png', pic)
 		action = self.determineAction(params)
+		# cv2.imwrite('3.png', pic)
+		self.ds.storeResult(pic,params,action)
+		# cv2.imwrite('4.png', pic)
 		self.actionExcute(action,params)
 
 	def mainLoop(self):
 		while(True):
 			newT = time.time()
 			ret = self.operater.Capture(0, 0, 2000, 2000, r"E:\develop\autoLOL\dm\screen1/0.bmp")
-			print('截图结果：{}'.format(ret))
+			#print('截图结果：{}'.format(ret))
 			if ret == 0:
 				print('capture fail')
 				time.sleep(1)
-			print('截图完成 花费时间：{}'.format(time.time() - newT))
+			#print('截图完成 花费时间：{}'.format(time.time() - newT))
 			pic = self.loadPic(r'E:\develop\autoLOL\dm\screen1/0.bmp')
-			print('读取图片完成 花费时间：{}'.format(time.time() - newT))
+			#print('读取图片完成 花费时间：{}'.format(time.time() - newT))
 			if pic is not None:
 				self.getPic(pic)
 				print('命令发送完成 花费时间：{}'.format(time.time() - newT))
@@ -261,7 +261,7 @@ class smartAI():
 			x.append(pic)
 			i += 1
 		self.x = np.array(x)
-		print(self.x.shape)
+
 
 	def useModel(self,modelName,inputData):
 		'''
@@ -273,6 +273,7 @@ class smartAI():
 		model = self.models.get(modelName,None)
 		if model is None:
 			model = self.addModel(modelName)
+		print('input',inputData.shape)
 		predictions = model.predict(inputData)
 
 		return predictions
@@ -291,7 +292,6 @@ class smartAI():
 			return self.HPdigitModel_
 
 	def hpDightRecognizate(self,charImgs):
-		print(type(charImgs),len(charImgs))
 
 		for img in charImgs:
 			if img.shape == (11,6):
@@ -307,20 +307,11 @@ class smartAI():
 		print('there are {} imgs to recognize || shape is {}'.format(len(charImgs),charImgs.shape))
 		ansLs = []
 		for i in range(len(charImgs)):
-			
 			targetImg = charImgs[i] * 255
 
 			predictions = self.HPdigitModel().predict(targetImg.reshape(1,11,6))
 			ans = np.argmax(predictions)
-			#maxValue = np.max(predictions)
-			#print(ans,maxValue)
-			#for x in self.x:
-			#	if (x == targetImg).all():
-			#		print('find x is the same ')
-			#		break
-			#plt.figure('')
-			#plt.imshow(targetImg)
-			#plt.show()
+
 			ansLs.append(ans)
 
 		return ansLs
