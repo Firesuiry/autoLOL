@@ -185,26 +185,19 @@ class picProcesser():
 			go = -1
 
 		action = {
-			'go':go
+			'go':0,
+			'back':0,
+			'standAndAttack':0
 		}
-		return action
 
-	def actionExcute(self,action,params):
-		'''
-		执行程序发出的指令到游戏
-		:param action:指令字典
-		:return:无
-		'''
-		go = action['go']
-		targetPostionName = ''
 		if go == 1:
-			targetPostionName = 'go'
+			action['go'] = 10
+		elif go == 0:
+			action['standAndAttack'] = 10
 		elif go == -1:
-			targetPostionName = 'back'
+			action['back'] = 10
 
-		targetPostion = params.get(targetPostionName,None)
-		if targetPostion is not None:
-			self.operater.MoveToMapPostion(targetPostion,targetPostionName == 'go')
+		return action
 
 	def getPic(self,pic):
 		'''
@@ -219,14 +212,14 @@ class picProcesser():
 		if same:
 			return
 		self.currentPic = pic
-		# cv2.imwrite('1.png', pic)
-		params = paramExtract(self)
-		# cv2.imwrite('2.png', pic)
-		action = self.determineAction(params)
-		# cv2.imwrite('3.png', pic)
-		self.ds.storeResult(pic,params,action)
-		# cv2.imwrite('4.png', pic)
-		self.actionExcute(action,params)
+		try:
+			params = paramExtract(self)
+			action = self.determineAction(params)
+			self.ds.storeResult(pic,params,action)
+			self.operater.actionExcute(action,params)
+		except Exception as e:
+			print("图片处理错误，详情：{}".format(e))
+			return -1
 
 	def mainLoop(self):
 		while(True):
@@ -235,7 +228,8 @@ class picProcesser():
 			#print('截图结果：{}'.format(ret))
 			if ret == 0:
 				print('capture fail')
-				time.sleep(1)
+				time.sleep(0.1)
+				continue
 			#print('截图完成 花费时间：{}'.format(time.time() - newT))
 			pic = self.loadPic(r'E:\develop\autoLOL\dm\screen1/0.bmp')
 			#print('读取图片完成 花费时间：{}'.format(time.time() - newT))
