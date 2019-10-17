@@ -11,10 +11,6 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 from reviewAndTrain.dataStore import dataStore
 
-
-
-
-
 class picProcesser():
 	def __init__(self,test = False):
 		self.operater = operater(test=test)
@@ -199,7 +195,7 @@ class picProcesser():
 
 		return action
 
-	def getPic(self,pic):
+	def getPic(self,pic,test = False):
 		'''
 		获取图片的函数，图片从此开始处理
 		:param pic:游戏全图
@@ -212,30 +208,42 @@ class picProcesser():
 		if same:
 			return
 		self.currentPic = pic
-		try:
+		errorTimes = 0
+		if not test:
+			try:
+				params = paramExtract(self)
+				action = self.determineAction(params)
+				self.ds.storeResult(pic,params,action)
+				self.operater.actionExcute(action,params)
+				errorTimes = 0
+			except Exception as e:
+				print("图片处理错误，详情：{}".format(e))
+				errorTimes += 1
+				if errorTimes > 10:
+					raise()
+				return -1
+		else:
 			params = paramExtract(self)
 			action = self.determineAction(params)
-			self.ds.storeResult(pic,params,action)
-			self.operater.actionExcute(action,params)
-		except Exception as e:
-			print("图片处理错误，详情：{}".format(e))
-			return -1
+			self.ds.storeResult(pic, params, action)
+			self.operater.actionExcute(action, params)
 
 	def mainLoop(self):
 		while(True):
 			newT = time.time()
-			ret = self.operater.Capture(0, 0, 2000, 2000, r"E:\develop\autoLOL\dm\screen1/0.bmp")
+			ret = self.operater.Capture(0, 0, 2000, 2000, r"screen1/0.bmp")
 			#print('截图结果：{}'.format(ret))
 			if ret == 0:
 				print('capture fail')
 				time.sleep(0.1)
 				continue
 			#print('截图完成 花费时间：{}'.format(time.time() - newT))
-			pic = self.loadPic(r'E:\develop\autoLOL\dm\screen1/0.bmp')
+			pic = self.loadPic(r'dm\screen1/0.bmp')
 			#print('读取图片完成 花费时间：{}'.format(time.time() - newT))
 			if pic is not None:
 				self.getPic(pic)
 				print('命令发送完成 花费时间：{}'.format(time.time() - newT))
+				time.sleep(0.05)
 			else:
 				time.sleep(0.1)
 

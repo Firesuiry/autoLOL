@@ -16,11 +16,11 @@ def paramExtract(self):
 
 	params['HP'] = hpExtract(self)
 
-	moneyPic = self.elementExtract('MONEY',pic)
+	#moneyPic = self.elementExtract('MONEY',pic)
 
-	params['money'] = get_charter(self,moneyPic)
+	#params['money'] = get_charter(self,moneyPic)
 
-	print('money:{}'.format(params['money']))
+	#print('money:{}'.format(params['money']))
 	return params
 
 

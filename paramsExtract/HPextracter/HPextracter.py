@@ -29,7 +29,7 @@ def HpPicExtract(oriPic):
 	:return: 返回血条，格式cv2图片
 	'''
 	targetArea = [454,686,730,697]
-	pic = oriPic[targetArea[1]:targetArea[3], targetArea[0]:targetArea[2]]
+	pic = oriPic[targetArea[1]:targetArea[3], targetArea[0]:targetArea[2]].copy()
 	return pic
 
 def findPic(oriImg, targetImg, threshold=0.8, delay=0.5, test=False):
@@ -161,7 +161,7 @@ def hpExtract2(self,pic = None):
 
 def hpExtract(self,pic = None):
 	if pic is None:
-		pic = self.currentPic
+		pic = self.currentPic.copy()
 	imgBGR = HpPicExtract(pic)
 	b = imgBGR[:, :, 0]
 	g = imgBGR[:, :, 1]

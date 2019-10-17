@@ -35,5 +35,5 @@ if __name__ == '__main__':
 	# index = i * 50 + 13
 	index = 200
 	print(index)
-	img = cv2.imread(r'E:\develop\autoLOL\ans\game9\{}.png'.format(index))
-	p.getPic(img)
+	img = cv2.imread(r'D:\develop\autoLOL\dm\screen1\0.bmp')
+	p.getPic(img,test =True)

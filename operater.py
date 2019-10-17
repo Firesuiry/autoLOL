@@ -24,8 +24,8 @@ class operater(MainCommucation):
 		:param action:动作字典，key为动作名 value为动作未指数前概率
 		:return:动作名称
 		'''
-		keys = np.array(action.keys())
-		values = np.array(action.values())
+		keys = np.array(list(action.keys()))
+		values = np.array(list(action.values()))
 		values = np.e**values
 
 		randomTarget = random.random()*np.sum(values)

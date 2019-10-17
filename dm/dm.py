@@ -32,7 +32,7 @@ class dmOperater(dmBase, dc.DmCommucation):
 		if dm_ret == 0:
 			return
 		self.dm.MoveWindow(hwnd, 1, 1)
-
+		self.dm.LockInput(1)
 		if not os.path.exists('screen' + str(self.id)):
 			os.makedirs('screen' + str(self.id))
 		self.start()
@@ -60,7 +60,7 @@ class dmManager(dmBase):
 		self.checkHwnd()
 
 	def checkHwnd(self):
-		windowName = "League of Legends (TM) Client - [Windows 7 x64]"
+		windowName = "League of Legends (TM) Client"
 		hwnds = self.dm.EnumWindow(0, windowName, "", 1 + 4 + 8 + 16)
 		print('hwnds:',hwnds)
 		print(type(hwnds))
