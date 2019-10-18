@@ -2,65 +2,75 @@ import cv2
 import numpy as np
 
 
-def findPics(oriImg, targetImg, mask = None, threshold=0.8, delay=0.5, test=False):
+def findPics(oriImg, targetImg, mask = None, threshold=0.8, delay=0.5, test=False,color = [255,0,0]):
+	print(oriImg.shape)
 	h, w = targetImg.shape[:2]  # rows->h, cols->w
 	h2, w2 = oriImg.shape[:2]  # rows->h, cols->w
 	res = cv2.matchTemplate(oriImg, targetImg, cv2.TM_CCORR_NORMED, mask=mask)
 	img = oriImg.copy()
-
+	postions = []
 	while(True):
 		min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
-		print(max_val)
+		#找出来以后 loc的左边顺序是反的
 
-		horizen0 = np.max(0,max_loc[0]-w//2)
-		horizen1 = np.min(w2,max_loc[0]+w//2)
-		vertical0 = np.max(0,max_loc[1]-h//2)
-		vertical1 = np.min(h2,max_loc[1]+w//2)
+		print(max_val,res[max_loc[1],max_loc[0]],np.max(res))
+		print('max_loc:{} max_val:{}'.format(max_loc,max_val))
 
-		res[horizen0:horizen1,vertical0,vertical1] = 0
+		horizen0 = np.max([0,max_loc[1]-h//2])
+		horizen1 = np.min([h2,max_loc[1]+h//2])
+		vertical0 = np.max([0,max_loc[0]-w//2])
+		vertical1 = np.min([w2,max_loc[0]+w//2])
 
-		postions = []
-
+		# if (res[horizen0:horizen1,vertical0:vertical1] == 0).all():
+		# 	print(h2,w//2)
+		# 	print(horizen0,horizen1, vertical0,vertical1)
+		# 	print('wrong op')
+		# 	break
 		if max_val > threshold:
 			left_top = max_loc  # 左上角
 			right_bottom = (left_top[0] + w, left_top[1] + h)  # 右下角
 			if test:
-				cv2.rectangle(img, left_top, right_bottom, 255, 1)  # 画出矩形位置
+				cv2.rectangle(img, left_top, right_bottom, color, 1)  # 画出矩形位置
 			postions.append([left_top, right_bottom])
 		else:
 			break
+		res[horizen0:horizen1,vertical0:vertical1] = 0
 	if test:
 		cv2.imwrite('result.png', img)
 
 	return postions
 
+def gezi(img,space):
+	w,h = img.shape[:2]
+	for i in range(h // space):
+		cv2.line(img,(space*(i+1),0),(space*(i+1),w-1),(255,255,255))
 
-def findPic(oriImg, targetImg, mask=None, threshold=0.8, test=False):
-	h, w = targetImg.shape[:2]  # rows->h, cols->w
-	res = cv2.matchTemplate(oriImg, targetImg, cv2.TM_CCORR_NORMED, mask=mask)
-
-	min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
-	maxValue = np.max(res)
-	print(maxValue)
-	if maxValue > threshold or True:
-		left_top = max_loc  # 左上角
-		right_bottom = (left_top[0] + w, left_top[1] + h)  # 右下角
-		if test:
-			# print(maxValue)
-			img = oriImg.copy()
-			cv2.rectangle(img, left_top, right_bottom, 255, 1)  # 画出矩形位置
-			cv2.imwrite('result.png', img)
-			cv2.imwrite('mask2.png', mask)
-
-		return [left_top, right_bottom]
+	for i in range(w // space):
+		cv2.line(img,(0,space*(i+1)),(h-1,space*(i+1)),(255,255,255))
+	return img
 
 
 if __name__ == "__main__":
+
 	target = cv2.imread('target.png')
 	mask = cv2.imread('mask3.png')
-	img0 = cv2.imread(r'E:\develop\autoLOLres\ans\screen779.bmp')
+	img0 = cv2.imread(r'D:\develop\autoLOLres\ans1\screen185.bm.jpg')
+
+	target2 = cv2.imread('xiaobingHP.png')
+	mask2 = cv2.imread('xiaobingHP_mask_l.png')
+
+	img0[np.where(np.sum(img0,axis=2) < 90)] = [0,0,0]
+	target2[np.where(np.sum(target2,axis=2) < 90)] = [0,0,0]
+
+	# findPics(img0, target, mask, test=True,threshold = 0.99)
+	findPics(img0, target2, mask2, test=True,threshold= 0.9,color=[255,255,255])
 
 
-	findPics(img0, target, mask, test=True)
-
-
+	#
+	# cv2.imwrite('xiaobingHP2.png', target2[:,:10])
+	# cv2.imwrite('xiaobingHP3.png', target2[:,-10:])
+	#
+	# cv2.imwrite('xiaobingHP_mask2.png', mask2[:,:10])
+	# cv2.imwrite('xiaobingHP_mask3.png', mask2[:,-10:])
+	lineImg = img0.copy()
+	cv2.imwrite('line.png', gezi(lineImg,20))
