@@ -171,7 +171,6 @@ def hpExtract(self,pic = None):
 	b[greenbgr] = 1
 	outPic = np.zeros_like(b)
 	b[greenbgr] = 255
-	cv2.imwrite('res.png',imgBGR)
 	green = np.sum(b, axis=0)
 	green = (green > 0)
 	hp = np.sum(green)

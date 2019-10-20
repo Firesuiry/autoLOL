@@ -53,16 +53,20 @@ class operater(MainCommucation):
 			targetPostion = params.get('go', None)
 			if targetPostion is not None:
 				self.MoveToPostion(targetPostion, True)
+			targetAction = [1,0,0]
 		elif targetAction == 'back':
 			targetPostion = params.get('back', None)
 			if targetPostion is not None:
 				self.MoveToPostion(targetPostion, False)
+			targetAction = [0, 1, 0]
 		elif targetAction == 'standAndAttack':
 			targetPostion = [590,358]
 			self.MoveToPostion(targetPostion, True)
+			targetAction = [0, 0, 1]
 		else:
 			print('未实现动作 待实现：{}'.format(targetAction))
 			raise
+		return targetAction
 
 
 	def MoveToPostion(self, postionOnMap, attack=True):
