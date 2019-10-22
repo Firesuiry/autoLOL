@@ -175,11 +175,12 @@ class picProcesser():
 		img = cv2.resize(pic, (256, 448))
 		img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
 		feature = self.ai.useModel('encoder.h5',img.reshape(1,256,448,1)).reshape(2048)
+		print('feature max:{}'.format(np.max(feature)))
 		value_input = np.zeros([3,2051])
 		for i in range(3):
 			value_input[i][:2048] = feature
 			value_input[i][2048+i] = 1
-
+		print(value_input[:,2048:])
 		action_value = self.ai.useModel('value_model.h5',value_input).reshape(3)
 
 		action = {

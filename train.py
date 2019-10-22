@@ -5,7 +5,6 @@ import sys,os
 from picProcesser import picProcesser
 import pathlib
 
-
 decay_rate = 0.95
 
 def caculate_socre(currentParams:dict,nextParams:dict):
@@ -24,15 +23,27 @@ def caculate_socre(currentParams:dict,nextParams:dict):
 	else:
 		money_score = 0
 
-	score = hp_score + money_score
+	score = hp_score*10 + money_score
 
 	return score
+
+
+def del_file(path):
+	for i in os.listdir(path):
+		path_file = os.path.join(path, i)
+		if os.path.isfile(path_file):
+			os.remove(path_file)
+		else:
+			del_file(path_file)
+	os.rmdir(path)
 
 def generateData(path,p):
 	path += '/'
 
 	if not os.path.exists(path + 'infor.txt'):
 		print(path + 'infor.txt not exist')
+		print('path is empty remove it path：{}'.format(path))
+		del_file(path)
 		return
 
 	if os.path.exists(path + 'infor2.txt'):
@@ -53,10 +64,17 @@ def generateData(path,p):
 			params = p.paramExtract(img,False)
 			dic['params'] = params
 			dataList.append(dic)
-		# if len(dataList) > 10:
+		# if len(dataList) > 2:
 		# 	break
 
 	length = len(dataList)
+	if length == 0:
+		print('path is empty remove it path：{}'.format(path))
+		del_file(path)
+		return
+	print(str(dataList) +
+		  '/n lenghh'+str(length)
+		  )
 	dataList[length-1]['score'] = 0#此处以后根据胜负进行赋值
 	socre_cahe = 0
 	for i in range(length-2,-1,-1):
@@ -71,40 +89,39 @@ def generateData(path,p):
 		actions = dic['actions']
 		target_action = [0,0,0]
 		if type(actions) == dict:
-
 			if actions['go'] > 0:
 				target_action[0] = 1
 			if actions['back'] > 0:
 				target_action[1] = 1
 			actions = target_action
+		dic['actions'] = actions
 		# ______________________________
-		actionContent = ''
-		for act in actions:
-			actionContent += str(act)
-			actionContent += ','
-		actionContent = actionContent[:-1]
 
-		file_name = str(dic['file']) + '.txt'
-		with open(path + file_name, 'w') as f:
-			content = actionContent + '+' + str(dic['score'])
-			f.write(content)
+	dataDic = {}
+	for dic in dataList:
+		file = dic['file']
+		action = dic['actions']
+		score = dic['score']
 
+		if action[0] == 1:
+			score += 1
 
-	json_str = json.dumps(dataList)
+		data = {
+			'action':action,
+			'score':score
+		}
+		dataDic[file] = data
+
+	json_str = json.dumps(dataDic)
 	with open(path + 'infor2.txt', 'w') as f:
 		f.write(json_str)
 
-
-
-
-
 if __name__ == '__main__':
-
-
 	p = picProcesser(test=True)
 	data_root = r'D:\develop\autoLOL\ans'
 	data_root = pathlib.Path(data_root)
 	all_data_paths = list(data_root.glob('*'))
 	all_data_paths = [str(path) for path in all_data_paths]
 	for path in all_data_paths:
+		print('process path:{}'.format(path))
 		generateData(path,p)

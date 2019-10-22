@@ -13,7 +13,6 @@ def paramExtract(self,gameRuning = True):
 	params = {}
 	pic = self.currentPic
 	params['back'], params['postion'], params['go'] = centerParaExtract(self)
-
 	params['HP'] = hpExtract(self)
 
 	if not gameRuning:
