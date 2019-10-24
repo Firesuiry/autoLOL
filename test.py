@@ -33,7 +33,6 @@ if __name__ == '__main__':
 
 	# for i in range(10):
 	# index = i * 50 + 13
-	index = 200
-	print(index)
-	img = cv2.imread(r'E:\develop\autoLOL\ans\game9\{}.png'.format(index))
-	p.getPic(img)
+
+	img = cv2.imread(r'D:\develop\autoLOL\ans\game1\10.png')
+	p.getPic(img,test =True)

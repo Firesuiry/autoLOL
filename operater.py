@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import time
 import json, os
+import numpy as np
+import random
 from dm.MainCommucation import MainCommucation
 
 
@@ -16,9 +18,60 @@ class operater(MainCommucation):
 			super(operater, self).__init__()
 			self.start()
 
-	def MoveToMapPostion(self, postionOnMap, attack=True):
+	def randomChooseTargetAction(self:any,action:dict):
 		'''
-		攻击移动前往地图上的坐标
+		根据softmax得出的值，随机选择一个动作
+		:param action:动作字典，key为动作名 value为动作未指数前概率
+		:return:动作名称
+		'''
+		keys = np.array(list(action.keys()))
+		values = np.array(list(action.values()))
+		values = np.e**values
+
+		randomTarget = random.random()*np.sum(values)
+
+		s = 0
+		targetActionIndex = 0
+		for i in range(len(values)):
+			s += values[i]
+			if randomTarget < s:
+				targetActionIndex = i
+				break
+		targetAction = keys[targetActionIndex]
+		return targetAction
+
+	def actionExcute(self:any,action:dict,params:dict):
+		'''
+		根据字典随机选择动作并执行动作
+		:param action:动作字典
+		:param params:参数字典
+		:return:
+		'''
+		targetAction = self.randomChooseTargetAction(action)
+
+		if targetAction == 'go':
+			targetPostion = params.get('go', None)
+			if targetPostion is not None:
+				self.MoveToPostion(targetPostion, True)
+			targetAction = [1,0,0]
+		elif targetAction == 'back':
+			targetPostion = params.get('back', None)
+			if targetPostion is not None:
+				self.MoveToPostion(targetPostion, False)
+			targetAction = [0, 1, 0]
+		elif targetAction == 'standAndAttack':
+			targetPostion = [590,358]
+			self.MoveToPostion(targetPostion, True)
+			targetAction = [0, 0, 1]
+		else:
+			print('未实现动作 待实现：{}'.format(targetAction))
+			raise
+		return targetAction
+
+
+	def MoveToPostion(self, postionOnMap, attack=True):
+		'''
+		攻击移动前往坐标
 		:param postionOnMap:
 		:return:
 		'''
@@ -45,7 +98,6 @@ class operater(MainCommucation):
 			'delay': delay
 		}
 		self.excuteCommand(command)
-
 
 	def addMouseCommandToJson(self, x=-1, y=-1, liftClick=False, rightClick=False, delay=100):
 		'''
@@ -106,7 +158,6 @@ class operater(MainCommucation):
 		else:
 			args += ')'
 		command = mathod + args
-
 		try:
 			print('excute command:{}'.format(command))
 			eval(command)

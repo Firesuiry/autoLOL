@@ -3,7 +3,7 @@ from paramsExtract.mapPostionExtracter.mapPostionExtracter import centerParaExtr
 from paramsExtract.MoneyExtracter.MoneyExtracter import get_charter
 import cv2
 
-def paramExtract(self):
+def paramExtract(self,gameRuning = True):
 	'''
 	通过游戏图像获取游戏动作执行过程中所需的参数
 	所有params的值必须为list或者dic 方便后面序列化
@@ -13,14 +13,12 @@ def paramExtract(self):
 	params = {}
 	pic = self.currentPic
 	params['back'], params['postion'], params['go'] = centerParaExtract(self)
-
 	params['HP'] = hpExtract(self)
 
-	moneyPic = self.elementExtract('MONEY',pic)
-
-	params['money'] = get_charter(self,moneyPic)
-
-	print('money:{}'.format(params['money']))
+	if not gameRuning:
+		moneyPic = self.elementExtract('MONEY',pic)
+		params['money'] = get_charter(self.ai,moneyPic)
+		print('money:{}'.format(params['money']))
 	return params
 
 

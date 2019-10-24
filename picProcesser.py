@@ -9,17 +9,16 @@ import time
 from PIL import Image
 import matplotlib.pyplot as plt
 import tensorflow as tf
+import os
 from reviewAndTrain.dataStore import dataStore
-
-
-
-
 
 class picProcesser():
 	def __init__(self,test = False):
+		self.test = test
 		self.operater = operater(test=test)
 		self.ai = smartAI()
-		self.ds = dataStore()
+		if not test:
+			self.ds = dataStore()
 		self.dataInit()
 
 	def dataInit(self):
@@ -33,7 +32,8 @@ class picProcesser():
 			'HP':[454,686,730,697],
 			'MP':[454,699,730,710],
 			'MONEY':[798,696,860,712],
-			'MAP':[1100,538,1279,719]
+			'MAP':[1100,538,1279,719],
+			'EXP':[410,622,448,710]
 		}
 
 		#节点名称介绍
@@ -92,9 +92,6 @@ class picProcesser():
 			self.newBottomNodeList.append(node)
 		self.bottomNodeList = self.newBottomNodeList.copy()
 		assert (len(self.bottomNodeList) != 0)
-		#HP提取时用的中间的斜线
-		self.HPxieImg = cv2.imread('resource/xie.png')
-		self.HPxieImg = cv2.cvtColor(self.HPxieImg, cv2.COLOR_BGR2GRAY)
 
 	def findPic(self,oriImg, targetImg, threshold=0.8, delay=0.5, test=False):
 		point = [0, 0]
@@ -123,11 +120,11 @@ class picProcesser():
 		:return: 返回地图，格式cv2图片
 		'''
 
-		print ('elementExtract elment:{}'.format(elementName))
+		# print ('elementExtract elment:{}'.format(elementName))
 		targetArea = self.postionData.get(elementName,None)
 		assert targetArea is not None
 		pic = oriPic[targetArea[1]:targetArea[3], targetArea[0]:targetArea[2]]
-		print(pic.shape)
+		# print(pic.shape)
 		return pic
 
 	def loadPic(self,path= 'res/Screen01.png'):
@@ -173,40 +170,32 @@ class picProcesser():
 		:return: 动作字典
 		'''
 
-		pic = self.currentPic
+		pic = self.currentPic.copy()
 
-		go = 1
-		HPpercent = params.get('HP',-1)
-		print('当前HP:{}'.format(HPpercent))
-		if HPpercent == -1:
-			pass
-		elif HPpercent < 0.95:
-			print('撤退')
-			go = -1
+		img = cv2.resize(pic, (256, 448))
+		img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+		feature = self.ai.useModel('encoder.h5',img.reshape(1,256,448,1)).reshape(2048)
+		print('feature max:{}'.format(np.max(feature)))
+		value_input = np.zeros([3,2051])
+		for i in range(3):
+			value_input[i][:2048] = feature
+			value_input[i][2048+i] = 1
+		print(value_input[:,2048:])
+		action_value = self.ai.useModel('value_model.h5',value_input).reshape(3)
 
 		action = {
-			'go':go
+			'go':action_value[0],
+			'back':action_value[1],
+			'standAndAttack':action_value[2]
 		}
+		print(action_value)
 		return action
+	def paramExtract(self,img,gameRuning = True):
+		#the method is used by training
+		self.currentPic = img
+		return paramExtract(self,gameRuning)
 
-	def actionExcute(self,action,params):
-		'''
-		执行程序发出的指令到游戏
-		:param action:指令字典
-		:return:无
-		'''
-		go = action['go']
-		targetPostionName = ''
-		if go == 1:
-			targetPostionName = 'go'
-		elif go == -1:
-			targetPostionName = 'back'
-
-		targetPostion = params.get(targetPostionName,None)
-		if targetPostion is not None:
-			self.operater.MoveToMapPostion(targetPostion,targetPostionName == 'go')
-
-	def getPic(self,pic):
+	def getPic(self,pic,test = False):
 		'''
 		获取图片的函数，图片从此开始处理
 		:param pic:游戏全图
@@ -219,35 +208,49 @@ class picProcesser():
 		if same:
 			return
 		self.currentPic = pic
-		# cv2.imwrite('1.png', pic)
-		params = paramExtract(self)
-		# cv2.imwrite('2.png', pic)
-		action = self.determineAction(params)
-		# cv2.imwrite('3.png', pic)
-		self.ds.storeResult(pic,params,action)
-		# cv2.imwrite('4.png', pic)
-		self.actionExcute(action,params)
+		errorTimes = 0
+		if not test:
+			# try:
+			params = paramExtract(self)
+			action = self.determineAction(params)
+			targetAction = self.operater.actionExcute(action,params)
+			self.ds.storeResult(pic,params,targetAction)
+			errorTimes = 0
+			# except Exception as e:
+			# 	print("图片处理错误，详情：{}".format(e))
+			# 	errorTimes += 1
+			# 	if errorTimes > 10:
+			# 		raise()
+			# 	return -1
+		else:
+			params = paramExtract(self,False)
+			action = self.determineAction(params)
+			self.operater.actionExcute(action, params)
 
 	def mainLoop(self):
 		while(True):
 			newT = time.time()
-			ret = self.operater.Capture(0, 0, 2000, 2000, r"E:\develop\autoLOL\dm\screen1/0.bmp")
+			ret = self.operater.Capture(0, 0, 2000, 2000, r"screen1/0.bmp")
 			#print('截图结果：{}'.format(ret))
 			if ret == 0:
 				print('capture fail')
-				time.sleep(1)
+				time.sleep(0.1)
+				continue
 			#print('截图完成 花费时间：{}'.format(time.time() - newT))
-			pic = self.loadPic(r'E:\develop\autoLOL\dm\screen1/0.bmp')
+			pic = self.loadPic(r'dm\screen1/0.bmp')
 			#print('读取图片完成 花费时间：{}'.format(time.time() - newT))
 			if pic is not None:
 				self.getPic(pic)
 				print('命令发送完成 花费时间：{}'.format(time.time() - newT))
+				time.sleep(0.05)
 			else:
 				time.sleep(0.1)
 
 
 class smartAI():
 	def __init__(self):
+		self.path = r'D:\develop\autoLOL'
+
 		self.models = {}
 		self.HPdigitModel_ = None
 		self.HPdigits = []
@@ -273,14 +276,20 @@ class smartAI():
 		model = self.models.get(modelName,None)
 		if model is None:
 			model = self.addModel(modelName)
-		print('input',inputData.shape)
+		# print('input',inputData.shape)
 		predictions = model.predict(inputData)
 
 		return predictions
 
 
 	def addModel(self,modelName):
-		self.models[modelName] = tf.keras.models.load_model(r'model/{}'.format(modelName))
+		# if not os.path.exists(r'model/{}'.format(modelName)):
+		# 	print('模型文件不存在，文件路径：{} 当前路径：{}'.format(r'model/{}'.format(modelName),os.path.abspath(__file__)))
+		# 	exit(0)
+		if self.path is None:
+			self.models[modelName] = tf.keras.models.load_model(r'model/{}'.format(modelName))
+		else:
+			self.models[modelName] = tf.keras.models.load_model(self.path + r'/model/{}'.format(modelName))
 		return self.models[modelName]
 
 
@@ -320,7 +329,6 @@ class smartAI():
 if __name__ == "__main__":
 	p = picProcesser()
 	p.mainLoop()
-	exit()
 
 
 

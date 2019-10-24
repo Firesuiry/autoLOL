@@ -64,7 +64,7 @@ def postionInSmallMapExtract(self, mapPic):
 	ms.fit(points)
 
 	cluster_centers = ms.cluster_centers_
-	print(cluster_centers)
+	# print(cluster_centers)
 	ys = []
 	for i in cluster_centers:
 		for j in i:
@@ -154,7 +154,7 @@ def centerParaExtract(self):
 	#print('after Transform:{}'.format(centerPoint))
 	#print(centerPoint)
 	closePointIndex = closePointDetact(self,centerPoint, self.bottomNodeList)
-	print('最近点序号：{}'.format(closePointIndex))
+	# print('最近点序号：{}'.format(closePointIndex))
 	backIndex = closePointIndex - 1
 	goIndex = closePointIndex + 1
 	if backIndex < 0:
