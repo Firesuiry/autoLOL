@@ -329,7 +329,6 @@ class smartAI():
 if __name__ == "__main__":
 	p = picProcesser()
 	p.mainLoop()
-	exit()
 
 
 

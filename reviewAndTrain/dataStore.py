@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import json,cv2,os
 import numpy as np
+from setting import *
 
 
 
@@ -11,7 +12,10 @@ class dataStore():
 	def __init__(self):
 		self.id = 0
 		while(True):
-			self.filesLocation = 'ans/game{}/'.format(self.id)
+			if DATA_ADDRESS == '':
+				self.filesLocation = 'ans/game{}/'.format(self.id)
+			else:
+				self.filesLocation = DATA_ADDRESS + 'game{}/'.format(self.id)
 			if not os.path.exists(self.filesLocation):
 				print('create dir:{}'.format(self.filesLocation))
 				os.makedirs(self.filesLocation)
