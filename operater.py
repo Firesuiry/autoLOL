@@ -40,6 +40,14 @@ class operater(MainCommucation):
 		targetAction = keys[targetActionIndex]
 		return targetAction
 
+	def goHome(self):
+		'''
+		返回泉水
+		:return:无
+		'''
+
+		pass
+
 	def actionExcute(self:any,action:dict,params:dict):
 		'''
 		根据字典随机选择动作并执行动作

@@ -12,23 +12,35 @@
 进度视频发布在：https://space.bilibili.com/20734975
 
 ## 对项目感兴趣：
-#### 交流学习：可以提issue或者发邮件到4690734@QQ.COM
-#### 参加项目开发：可以参加QQ群：678238200 欢迎一起搞的小伙伴~
+#### 交流学习：
+可以提issue或者发邮件到4690734@QQ.COM
+#### 参加项目开发：
+可以加我QQ 4690734 或者Email联系~
+
 
 # English Version（Use Baidu Translate）
-## The ultimate goal is:
-Create an AI like alphaZero
+##Ultimate goal:
 
-## Short-term objectives:
-Create an AI that can beat the average human machine (in matching mode)
+Create an AI like alpha zero
 
-## Tentative implementation path:
-Two simple actions are implemented: forward attack and backward withdrawal. A simple neural network is used to determine which operation to perform at intervals of time.
+##Short term goals:
 
-At the same time, an evaluator is implemented to evaluate the effect after each operation, mainly based on blood volume, money changes, whether the injury has been hit, etc.
+Create an AI that can beat the average man-machine (in matching mode)
 
-## Current progress
-it will be upload at https://space.bilibili.com/20734975
+##Tentative Implementation Path:
 
-## Interested in the project:
-You can contact me under this project or send an email to 4690734@QQ.COM.
+Two simple actions are realized: forward attack and backward. A simple neural network is used to judge which operation should be carried out and implement an evaluator at the same time in a period of time, so as to evaluate the effect after each operation, mainly based on the change of blood volume, money, and whether the damage is caused.
+
+##Current progress
+
+Progress video published at: https://space.bilibilibili.com/20734975
+
+##Interested in the project:
+
+####Communication and learning:
+
+You can raise the issue or send an email to 4690734@qq.com
+
+####Participate in project development:
+
+You can contact me by QQ 4690734 or email~
