@@ -12,8 +12,8 @@
 进度视频发布在：https://space.bilibili.com/20734975
 
 ## 对项目感兴趣：
-可以在这个项目下联系我或者发邮件到4690734@QQ.COM 也可以加我qq
-qq群：678238200 欢迎想一起搞的小伙伴
+#### 交流学习：可以提issue或者发邮件到4690734@QQ.COM
+#### 参加项目开发：可以参加QQ群：678238200 欢迎一起搞的小伙伴~
 
 # English Version（Use Baidu Translate）
 ## The ultimate goal is:
