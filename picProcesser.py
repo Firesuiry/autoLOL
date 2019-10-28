@@ -1,5 +1,5 @@
+# -*- coding: utf-8 -*-
 from paramsExtract.paramsExtracter import paramExtract
-
 import numpy as np
 import cv2
 from skimage import morphology
@@ -9,15 +9,16 @@ import time
 from PIL import Image
 import matplotlib.pyplot as plt
 import tensorflow as tf
-
-
-
-
+import os
+from reviewAndTrain.dataStore import dataStore
 
 class picProcesser():
-	def __init__(self):
-		self.operater = operater()
+	def __init__(self,test = False):
+		self.test = test
+		self.operater = operater(test=test)
 		self.ai = smartAI()
+		if not test:
+			self.ds = dataStore()
 		self.dataInit()
 
 	def dataInit(self):
@@ -32,17 +33,17 @@ class picProcesser():
 			'MP':[454,699,730,710],
 			'MONEY':[798,696,860,712],
 			'MAP':[1100,538,1279,719],
-			'EXP':[622,410,710,448]
+			'EXP':[410,622,448,710]
 		}
 
-        #节点名称介绍
+		#节点名称介绍
 		'''
 		首位 L左下边 R右上边
 		次位 Base基地（结束） T上 M中 B下
 		再次 Node 召唤节点（结束） T塔 R河道边
 		再次 1高地塔（结束） 2二塔（结束） 3边塔（结束） 0门牙塔
 		再次 0左门牙塔（结束） 1右门牙塔（结束）
-		'''
+'''
 		self.nodesPostions = {
 			'LSpring':[1105,707],
 			'LBase':[1119,694],
@@ -91,9 +92,6 @@ class picProcesser():
 			self.newBottomNodeList.append(node)
 		self.bottomNodeList = self.newBottomNodeList.copy()
 		assert (len(self.bottomNodeList) != 0)
-		#HP提取时用的中间的斜线
-		self.HPxieImg = cv2.imread('resource/xie.png')
-		self.HPxieImg = cv2.cvtColor(self.HPxieImg, cv2.COLOR_BGR2GRAY)
 
 	def findPic(self,oriImg, targetImg, threshold=0.8, delay=0.5, test=False):
 		point = [0, 0]
@@ -101,12 +99,12 @@ class picProcesser():
 		res = cv2.matchTemplate(oriImg, targetImg, cv2.TM_CCOEFF_NORMED)
 		min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
 		maxValue = np.max(res)
-		# print(maxValue)
+
 		if maxValue > threshold or True:
 			left_top = max_loc  # 左上角
 			right_bottom = (left_top[0] + w, left_top[1] + h)  # 右下角
 			if test:
-				# print(maxValue)
+
 				img = oriImg.copy()
 				cv2.rectangle(img, left_top, right_bottom, 255, 1)  # 画出矩形位置
 				cv2.imwrite('result.png', img)
@@ -121,11 +119,12 @@ class picProcesser():
 		:param oriPic: 原始图片 格式cv2图片
 		:return: 返回地图，格式cv2图片
 		'''
-		print ('elementExtract elment:{}'.format(elementName))
+
+		# print ('elementExtract elment:{}'.format(elementName))
 		targetArea = self.postionData.get(elementName,None)
 		assert targetArea is not None
-		print (targetArea)
 		pic = oriPic[targetArea[1]:targetArea[3], targetArea[0]:targetArea[2]]
+		# print(pic.shape)
 		return pic
 
 	def loadPic(self,path= 'res/Screen01.png'):
@@ -164,83 +163,94 @@ class picProcesser():
 		return pointIn
 
 
-	def picSize(self,img):
-		height = len(img)
-		width = len(img[0])
-		print('图片大小%dX%d' % (width, height))
-
-
 	def determineAction(self,params = {}):
 		'''
 		通过输入图片决定所需动作 局势检测等在此实现
-
 		:param pic: 当前完整图片
 		:return: 动作字典
 		'''
 
-		pic = self.currentPic
+		pic = self.currentPic.copy()
 
-		go = 1
-		HPpercent = params.get('HP',-1)
-		print('当前HP:{}'.format(HPpercent))
-		if HPpercent == -1:
-			pass
-		elif HPpercent < 0.95:
-			print('撤退')
-			go = -1
+		img = cv2.resize(pic, (256, 448))
+		img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+		feature = self.ai.useModel('encoder.h5',img.reshape(1,256,448,1)).reshape(2048)
+		print('feature max:{}'.format(np.max(feature)))
+		value_input = np.zeros([3,2051])
+		for i in range(3):
+			value_input[i][:2048] = feature
+			value_input[i][2048+i] = 1
+		print(value_input[:,2048:])
+		action_value = self.ai.useModel('value_model.h5',value_input).reshape(3)
 
 		action = {
-			'go':go
+			'go':action_value[0],
+			'back':action_value[1],
+			'standAndAttack':action_value[2]
 		}
+		print(action_value)
 		return action
+	def paramExtract(self,img,gameRuning = True):
+		#the method is used by training
+		self.currentPic = img
+		return paramExtract(self,gameRuning)
 
-	def actionExcute(self,action,params):
-		'''
-		执行程序发出的指令到游戏
-		:param action:指令字典
-		:return:无
-		'''
-		go = action['go']
-		targetPostionName = ''
-		if go == 1:
-			targetPostionName = 'go'
-		elif go == -1:
-			targetPostionName = 'back'
-
-		targetPostion = params.get(targetPostionName,None)
-		if targetPostion is not None:
-			self.operater.MoveToMapPostion(targetPostion,targetPostionName == 'go')
-			self.operater.sendCommand()
-
-	def getPic(self,pic):
+	def getPic(self,pic,test = False):
 		'''
 		获取图片的函数，图片从此开始处理
 		:param pic:游戏全图
 		:return:
 		'''
-		print(pic.shape)
+
 		assert (pic.shape == (720,1280,3))
 		same = (pic == self.currentPic).all()
 		print('获取图片 重复判断结果：{}'.format(same))
 		if same:
 			return
 		self.currentPic = pic
-		params = paramExtract(self)
-		action = self.determineAction(params)
-		self.actionExcute(action,params)
+		errorTimes = 0
+		if not test:
+			# try:
+			params = paramExtract(self)
+			action = self.determineAction(params)
+			targetAction = self.operater.actionExcute(action,params)
+			self.ds.storeResult(pic,params,targetAction)
+			errorTimes = 0
+			# except Exception as e:
+			# 	print("图片处理错误，详情：{}".format(e))
+			# 	errorTimes += 1
+			# 	if errorTimes > 10:
+			# 		raise()
+			# 	return -1
+		else:
+			params = paramExtract(self,False)
+			action = self.determineAction(params)
+			self.operater.actionExcute(action, params)
 
 	def mainLoop(self):
 		while(True):
-		#if True:
-			pic = self.loadPic('dm/screen1/0.bmp')
+			newT = time.time()
+			ret = self.operater.Capture(0, 0, 2000, 2000, r"screen1/0.bmp")
+			#print('截图结果：{}'.format(ret))
+			if ret == 0:
+				print('capture fail')
+				time.sleep(0.1)
+				continue
+			#print('截图完成 花费时间：{}'.format(time.time() - newT))
+			pic = self.loadPic(r'dm\screen1/0.bmp')
+			#print('读取图片完成 花费时间：{}'.format(time.time() - newT))
 			if pic is not None:
 				self.getPic(pic)
+				print('命令发送完成 花费时间：{}'.format(time.time() - newT))
+				time.sleep(0.05)
 			else:
 				time.sleep(0.1)
 
 
 class smartAI():
 	def __init__(self):
+		self.path = r'D:\develop\autoLOL'
+
 		self.models = {}
 		self.HPdigitModel_ = None
 		self.HPdigits = []
@@ -254,7 +264,7 @@ class smartAI():
 			x.append(pic)
 			i += 1
 		self.x = np.array(x)
-		print(self.x.shape)
+
 
 	def useModel(self,modelName,inputData):
 		'''
@@ -266,13 +276,20 @@ class smartAI():
 		model = self.models.get(modelName,None)
 		if model is None:
 			model = self.addModel(modelName)
+		# print('input',inputData.shape)
 		predictions = model.predict(inputData)
 
 		return predictions
 
 
 	def addModel(self,modelName):
-		self.models[modelName] = tf.keras.models.load_model(r'model/{}'.format(modelName))
+		# if not os.path.exists(r'model/{}'.format(modelName)):
+		# 	print('模型文件不存在，文件路径：{} 当前路径：{}'.format(r'model/{}'.format(modelName),os.path.abspath(__file__)))
+		# 	exit(0)
+		if self.path is None:
+			self.models[modelName] = tf.keras.models.load_model(r'model/{}'.format(modelName))
+		else:
+			self.models[modelName] = tf.keras.models.load_model(self.path + r'/model/{}'.format(modelName))
 		return self.models[modelName]
 
 
@@ -284,7 +301,6 @@ class smartAI():
 			return self.HPdigitModel_
 
 	def hpDightRecognizate(self,charImgs):
-		print(type(charImgs),len(charImgs))
 
 		for img in charImgs:
 			if img.shape == (11,6):
@@ -300,20 +316,11 @@ class smartAI():
 		print('there are {} imgs to recognize || shape is {}'.format(len(charImgs),charImgs.shape))
 		ansLs = []
 		for i in range(len(charImgs)):
-			
 			targetImg = charImgs[i] * 255
 
 			predictions = self.HPdigitModel().predict(targetImg.reshape(1,11,6))
 			ans = np.argmax(predictions)
-			#maxValue = np.max(predictions)
-			#print(ans,maxValue)
-			#for x in self.x:
-			#	if (x == targetImg).all():
-			#		print('find x is the same ')
-			#		break
-			#plt.figure('')
-			#plt.imshow(targetImg)
-			#plt.show()
+
 			ansLs.append(ans)
 
 		return ansLs
@@ -322,7 +329,6 @@ class smartAI():
 if __name__ == "__main__":
 	p = picProcesser()
 	p.mainLoop()
-	exit()
 
 
 

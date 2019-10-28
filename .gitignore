@@ -6,3 +6,5 @@
 /jupyter/
 /.idea/
 *.pyc
+/reviewAndTrain/ans
+/model/

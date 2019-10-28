@@ -18,7 +18,6 @@ class targetDetacter():
 		img0 = img.copy()
 		img0[np.where(np.sum(img0,axis=2) < 90)] = [0,0,0]
 		enemy_soldier_postions = self.findPics(img0, self.enemy_soldier_target_full, self.soldier_mask_full, test='enemy_soldier',threshold= 0.9,color=[255,255,255],maxThreshold= 0.99)
-
 		dic['hero'] = hero_postions
 		dic['enemy_soldier'] = enemy_soldier_postions
 
@@ -38,6 +37,7 @@ class targetDetacter():
 
 			print(max_val,res[max_loc[1],max_loc[0]],np.max(res))
 			print('max_loc:{} max_val:{}'.format(max_loc,max_val))
+
 
 			horizen0 = np.max([0,max_loc[1]-h//2])
 			horizen1 = np.min([h2,max_loc[1]+h//2])
