@@ -1,7 +1,9 @@
 from paramsExtract.HPextracter.HPextracter import hpExtract
 from paramsExtract.mapPostionExtracter.mapPostionExtracter import centerParaExtract
 from paramsExtract.MoneyExtracter.MoneyExtracter import get_charter
+from paramsExtract.heroAndSoldierPostionDetact.heroAndSoldierPostionDetact import hero_soldier_detacter
 import cv2
+
 
 def paramExtract(self,gameRuning = True):
 	'''
@@ -11,7 +13,7 @@ def paramExtract(self,gameRuning = True):
 	:return:动作等所需参数
 	'''
 	params = {}
-	pic = self.currentPic
+	pic = self.currentPic.copy()
 	params['back'], params['postion'], params['go'] = centerParaExtract(self)
 	params['HP'] = hpExtract(self)
 
