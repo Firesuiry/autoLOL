@@ -2,7 +2,8 @@ import cv2
 import numpy as np
 
 
-def findPics(oriImg, targetImg, mask = None, threshold=0.8, delay=0.5, test=False,color = [255,0,0]):
+
+def findPics(oriImg, targetImg, mask = None, threshold=0.8, delay=0.5, test=False,color = [255,0,0] , maxThreshold = 1.1):
 	print(oriImg.shape)
 	h, w = targetImg.shape[:2]  # rows->h, cols->w
 	h2, w2 = oriImg.shape[:2]  # rows->h, cols->w
@@ -21,18 +22,15 @@ def findPics(oriImg, targetImg, mask = None, threshold=0.8, delay=0.5, test=Fals
 		vertical0 = np.max([0,max_loc[0]-w//2])
 		vertical1 = np.min([w2,max_loc[0]+w//2])
 
-		# if (res[horizen0:horizen1,vertical0:vertical1] == 0).all():
-		# 	print(h2,w//2)
-		# 	print(horizen0,horizen1, vertical0,vertical1)
-		# 	print('wrong op')
-		# 	break
-		if max_val > threshold:
+
+
+		if max_val > threshold and max_val < maxThreshold:
 			left_top = max_loc  # 左上角
 			right_bottom = (left_top[0] + w, left_top[1] + h)  # 右下角
 			if test:
 				cv2.rectangle(img, left_top, right_bottom, color, 1)  # 画出矩形位置
 			postions.append([left_top, right_bottom])
-		else:
+		elif max_val <= threshold:
 			break
 		res[horizen0:horizen1,vertical0:vertical1] = 0
 	if test:
@@ -59,11 +57,13 @@ if __name__ == "__main__":
 	target2 = cv2.imread('xiaobingHP.png')
 	mask2 = cv2.imread('xiaobingHP_mask_l.png')
 
+
+
+	findPics(img0, target, mask, test=True,threshold = 0.99)
+
 	img0[np.where(np.sum(img0,axis=2) < 90)] = [0,0,0]
 	target2[np.where(np.sum(target2,axis=2) < 90)] = [0,0,0]
-
-	# findPics(img0, target, mask, test=True,threshold = 0.99)
-	findPics(img0, target2, mask2, test=True,threshold= 0.9,color=[255,255,255])
+	# findPics(img0, target2, mask2, test=True,threshold= 0.9,color=[255,255,255],maxThreshold= 0.99)
 
 
 	#
