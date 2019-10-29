@@ -210,18 +210,18 @@ class picProcesser():
 		self.currentPic = pic
 		errorTimes = 0
 		if not test:
-			# try:
-			params = paramExtract(self)
-			action = self.determineAction(params)
-			targetAction = self.operater.actionExcute(action,params)
-			self.ds.storeResult(pic,params,targetAction)
-			errorTimes = 0
-			# except Exception as e:
-			# 	print("图片处理错误，详情：{}".format(e))
-			# 	errorTimes += 1
-			# 	if errorTimes > 10:
-			# 		raise()
-			# 	return -1
+			try:
+				params = paramExtract(self)
+				action = self.determineAction(params)
+				targetAction = self.operater.actionExcute(action,params)
+				self.ds.storeResult(pic,params,targetAction)
+				errorTimes = 0
+			except Exception as e:
+				print("图片处理错误，详情：{}".format(e))
+				errorTimes += 1
+				if errorTimes > 10:
+					raise()
+				return -1
 		else:
 			params = paramExtract(self,False)
 			action = self.determineAction(params)

@@ -1,7 +1,7 @@
 from paramsExtract.HPextracter.HPextracter import hpExtract
 from paramsExtract.mapPostionExtracter.mapPostionExtracter import centerParaExtract
 from paramsExtract.MoneyExtracter.MoneyExtracter import get_charter
-from paramsExtract.heroAndSoldierPostionDetact.heroAndSoldierPostionDetact import hero_soldier_detacter
+# from paramsExtract.heroAndSoldierPostionDetact.heroAndSoldierPostionDetact import hero_soldier_detacter
 import cv2
 
 

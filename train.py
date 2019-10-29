@@ -7,6 +7,7 @@ import pathlib
 from setting import *
 
 decay_rate = DECAY_RATE
+print('decay_rate:',decay_rate)
 
 def caculate_socre(currentParams:dict,nextParams:dict):
 	score = 0
@@ -31,7 +32,7 @@ def caculate_socre(currentParams:dict,nextParams:dict):
 	else:
 		money_score = 0
 
-	score = hp_score*2 + money_score
+	score = hp_score*2 + money_score*100
 
 	return score
 
