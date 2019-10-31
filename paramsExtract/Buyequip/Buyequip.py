@@ -97,13 +97,12 @@ class Main:
 	def INIT(self):
 		"""找到初始购买的位置，锚定购买坐标"""
 		self.dm.start()
-		time.sleep(5)
+		time.sleep(0.1)
 		self.open_shop()
 		self.EnterEquipName("多兰之刃")
 		time.sleep(1)
 		self.find_pos()
 		print("定位完成{}".format(str(self.pos)))
-		self.Action_Buy()
 		self.Action_QuitShop()
 	def EnterEquipName(self,Name):
 		pinyin = self.EquipList.ReturnEquipName(id,Name)
@@ -116,7 +115,9 @@ class Main:
 		self.dm.KeyPressChar("esc")
 
 	def Action_Buy(self):
-		self.dm.LeftClick()
+		# self.dm.MoveTo(*self.pos)
+		# time.sleep(0.5)
+		# self.dm.LeftClick()
 		time.sleep(0.5)
 		self.dm.MoveTo(*self.pos)
 		time.sleep(0.5)
@@ -129,7 +130,7 @@ class Main:
 		template = cv2.imread(r"C:\\Users\\Administrator\\Desktop\\duolan.png", 0)
 		res = cv2.matchTemplate(img_gray, template, cv2.TM_CCOEFF_NORMED)
 		min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
-		self.pos = tuple(map(lambda x: x + 50, max_loc))
+		self.pos = tuple(map(lambda x: x + 25, max_loc))
 		self.INIT_Finished = True
 
 	def open_shop(self):
@@ -144,10 +145,17 @@ class Main:
 		self.dm.KeyPressChar("l")
 		time.sleep(0.5)
 		self.dm.KeyUpChar("ctrl")
+
+	def Buy(self,name):
+		self.open_shop()
+		self.EnterEquipName(name)
+		self.Action_Buy()
+		self.Action_QuitShop()
+
 if __name__ == '__main__':
 	import time
 	dm = dm.MainCommucation()
 	ww =Main(dm)
 	ww.INIT()
-
+	ww.Buy('短剑')
 
