@@ -114,10 +114,14 @@ class Main:
 	def Action_QuitShop(self):
 		time.sleep(0.5)
 		self.dm.KeyPressChar("esc")
+
 	def Action_Buy(self):
+		self.dm.LeftClick()
 		time.sleep(0.5)
 		self.dm.MoveTo(*self.pos)
+		time.sleep(0.5)
 		self.dm.RightClick()
+
 	def find_pos(self):
 		self.dm.Capture(0, 0, 2000, 2000, r"C:\\Users\\Administrator\\Desktop\\123.jpg")
 		pic = cv2.imread(r"C:\\Users\\Administrator\\Desktop\\123.jpg")
@@ -127,8 +131,12 @@ class Main:
 		min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
 		self.pos = tuple(map(lambda x: x + 50, max_loc))
 		self.INIT_Finished = True
+
 	def open_shop(self):
 		"""打开商店"""
+		self.dm.MoveTo(100,100)
+		self.dm.LeftClick()
+		time.sleep(0.5)
 		self.dm.KeyPressChar("p")
 		time.sleep(0.5)
 		self.dm.KeyDownChar("ctrl")

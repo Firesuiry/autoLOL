@@ -76,8 +76,13 @@ class operater(MainCommucation):
 			raise
 		return targetAction
 
-
 	def MoveToPostion(self, postionOnMap, attack=True):
+		self.addMouseCommandToJson(100, 100,liftClick=True)
+		self.addKeyboardCommandToJson('P')
+		# self.addMouseCommandToJson(100, 100,liftClick=True)
+		# self.addKeyboardCommandToJson('P', Up=True)
+
+	def MoveToPostion2(self, postionOnMap, attack=True):
 		'''
 		攻击移动前往坐标
 		:param postionOnMap:
