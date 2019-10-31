@@ -27,7 +27,7 @@ def hpExtract(self,pic = None):
 	green = (green > 0)
 	hp = np.sum(green)
 	hp = hp / green.shape[0]
-	print('the percent of HP:{}'.format(hp))
+	# print('the percent of HP:{}'.format(hp))
 	return hp
 
 if __name__ == '__main__':

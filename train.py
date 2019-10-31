@@ -6,17 +6,27 @@ from picProcesser import picProcesser
 import pathlib
 from setting import *
 
+nothing_times = 0
+caculate_index = 0
 decay_rate = DECAY_RATE
 print('decay_rate:',decay_rate)
 
-def caculate_socre(currentParams:dict,nextParams:dict):
-	score = 0
 
+def caculate_socre(currentParams:dict,nextParams:dict,current_actions:list):
+	score = 0
+	global nothing_times,caculate_index
 	hp0 = currentParams['HP']
 	hp1 = nextParams['HP']
 
 	money0 = currentParams['money']
 	money1 = nextParams['money']
+
+	exp0 = currentParams['exp']
+	exp1 = nextParams['exp']
+
+	currentPostion = currentParams['postion']
+
+
 
 	deta_hp = hp1 - hp0
 	hp_score = 0
@@ -25,15 +35,53 @@ def caculate_socre(currentParams:dict,nextParams:dict):
 	elif deta_hp < 0:
 		hp_score = deta_hp / (hp0+0.000001)
 
-
+	money_score = 0
 	if money0 != -1 and money1 != -1:
 		detaMoney = np.max([money1 - money0, 0])
 		money_score = np.max([(detaMoney) ** 0.5, 2]) - 2
 	else:
 		money_score = 0
 
-	score = hp_score*2 + money_score*100
+	exp_score = 0
+	if not exp0 == exp1:
+		exp_score = 1
 
+	go_on_score = 0
+	# if currentPostion < 10:
+	# 	if current_actions[0] == 1:
+	# 		go_on_score = 10 - currentPostion
+	# 	elif current_actions[1] == 1:
+	# 		go_on_score = current_actions - 10
+	hp_score = hp_score * 2
+	money_score = money_score * 5
+	exp_score = exp_score * 20
+	go_on_score = go_on_score * 0.5
+
+	score = hp_score + money_score + exp_score + go_on_score
+
+	#对长时间无所事事进行处罚
+	if nothing_times is None:
+		nothing_times = 0
+	if score == 0:
+		nothing_times += 1
+	else:
+		nothing_times = 0
+
+	nothing_score = nothing_times**2/1000
+	nothing_max_score = 20
+	if nothing_score > nothing_max_score:
+		nothing_score = nothing_max_score
+
+	if current_actions[0] == 1:
+		score += nothing_score
+	elif current_actions[1] == 1:
+		score -= nothing_score
+
+	print('{}:score:{:<10f} action:{} hp_score:{:<5f} money_score:{:<5f} exp_score:{} go_on_score:{} nothing_score:{}'.format(caculate_index,score,current_actions,hp_score,money_score,exp_score,go_on_score,nothing_score))
+	caculate_index += 1
+
+	score = score/3.3324922355957254
+	all_scores.append(score)
 	return score
 
 
@@ -84,26 +132,16 @@ def generateData(path,p,reCaculateParms = False,reCaculateScore = False):
 				params = p.paramExtract(img,False)
 				dic['params'] = params
 				dataList.append(dic)
-			# if len(dataList) > 2:
+			# if len(dataList) > 1:
 			# 	break
+		# print(dataList)
+		# for data in dataList:
+		# 	for key,value in data['params'].items():
+		# 		print(key,value,type(value))
 		data_list_str = json.dumps(dataList)
+		# exit()
 		with open(path + 'dataList.txt', "w") as f:  # 设置文件对象
 			f.write(data_list_str)
-
-
-	#执行分数计算程序
-	length = len(dataList)
-	if length == 0:
-		print('length == 0 path is empty remove it path：{}'.format(path))
-		del_file(path)
-		return
-	dataList[length-1]['score'] = 0#此处以后根据胜负进行赋值
-	socre_cahe = 0
-	for i in range(length-2,-1,-1):
-		score = caculate_socre(dataList[i]['params'],dataList[i+1]['params'])
-		score = score + decay_rate * socre_cahe
-		socre_cahe = score
-		dataList[i]['score'] = score
 
 	for dic in dataList:
 		# ______________________________此处为为了兼容之前保存的东西进行的修改,目前仍是如此保存的
@@ -117,6 +155,23 @@ def generateData(path,p,reCaculateParms = False,reCaculateScore = False):
 			actions = target_action
 		dic['actions'] = actions
 		# ______________________________
+
+
+	#执行分数计算程序
+	length = len(dataList)
+	if length == 0:
+		print('length == 0 path is empty remove it path：{}'.format(path))
+		del_file(path)
+		return
+	dataList[length-1]['score'] = 0#此处以后根据胜负进行赋值
+	socre_cahe = 0
+	for i in range(length-2,-1,-1):
+		score = caculate_socre(dataList[i]['params'],dataList[i+1]['params'],dataList[i]['actions'])
+		score = score + decay_rate * socre_cahe
+		socre_cahe = score
+		dataList[i]['score'] = score
+
+
 
 	dataDic = {}
 	for dic in dataList:
@@ -139,13 +194,19 @@ def generateData(path,p,reCaculateParms = False,reCaculateScore = False):
 
 if __name__ == '__main__':
 	p = picProcesser(test=True)
+
 	if DATA_ADDRESS == '':
 		data_root = PROJECT_ADDRESS + r'ans'
 	else:
 		data_root = DATA_ADDRESS
+	all_scores = []
 	data_root = pathlib.Path(data_root)
 	all_data_paths = list(data_root.glob('*'))
 	all_data_paths = [str(path) for path in all_data_paths]
 	for path in all_data_paths:
 		print('process path:{}'.format(path))
 		generateData(path,p,reCaculateScore=True)
+	
+	mean = np.mean(all_scores)
+
+	print('average score:{}'.format(np.mean(all_scores)))

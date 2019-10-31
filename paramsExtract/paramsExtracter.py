@@ -2,7 +2,9 @@ from paramsExtract.HPextracter.HPextracter import hpExtract
 from paramsExtract.mapPostionExtracter.mapPostionExtracter import centerParaExtract
 from paramsExtract.MoneyExtracter.MoneyExtracter import get_charter
 # from paramsExtract.heroAndSoldierPostionDetact.heroAndSoldierPostionDetact import hero_soldier_detacter
+from paramsExtract.currentExp.currentExp import current_exp
 import cv2
+import numpy as np
 
 
 def paramExtract(self,gameRuning = True):
@@ -14,13 +16,17 @@ def paramExtract(self,gameRuning = True):
 	'''
 	params = {}
 	pic = self.currentPic.copy()
-	params['back'], params['postion'], params['go'] = centerParaExtract(self)
+	params['back'], params['postion'], params['go'],close_postion_index = centerParaExtract(self)
 	params['HP'] = hpExtract(self)
 
 	if not gameRuning:
 		moneyPic = self.elementExtract('MONEY',pic)
 		params['money'] = get_charter(self.ai,moneyPic)
-		print('money:{}'.format(params['money']))
+
+		expPic = self.elementExtract('EXP',pic)
+		params['exp'] = current_exp(expPic)
+		params['postionIndex'] = int(close_postion_index)
+		# print('money:{} exp:{}'.format(params['money'],params['exp']))
 	return params
 
 

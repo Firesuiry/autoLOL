@@ -18,7 +18,7 @@ def current_exp(m1):
     sum = np.sum(a)
 
     #return current experience proportion
-    if sum>=16*255 :
-       return(round(((sum+16*255)/(255*a.shape[0])),2))
+    if sum >= 16*255:
+        return(round(((sum+16*255)/(255*a.shape[0])),2))
     else:
         return 0

@@ -188,7 +188,9 @@ class picProcesser():
 			'back':action_value[1],
 			'standAndAttack':action_value[2]
 		}
-		print(action_value)
+		if (action_value == 0).all():
+			action['go'] = 5
+		print(action)
 		return action
 	def paramExtract(self,img,gameRuning = True):
 		#the method is used by training
@@ -242,7 +244,7 @@ class picProcesser():
 			if pic is not None:
 				self.getPic(pic)
 				print('命令发送完成 花费时间：{}'.format(time.time() - newT))
-				time.sleep(0.05)
+				time.sleep(0.1)
 			else:
 				time.sleep(0.1)
 

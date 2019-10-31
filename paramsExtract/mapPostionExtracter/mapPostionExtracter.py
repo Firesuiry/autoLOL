@@ -165,4 +165,4 @@ def centerParaExtract(self):
 	re1 = self.bottomNodeList[backIndex].tolist()
 	re2 = centerPoint
 	re3 = self.bottomNodeList[goIndex].tolist()
-	return re1,re2,re3
+	return re1,re2,re3,closePointIndex
