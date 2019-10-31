@@ -116,7 +116,8 @@ class Main:
 		self.dm.KeyPressChar("esc")
 	def Action_Buy(self):
 		time.sleep(0.5)
-		self.dm.MoveToRightClick(*self.pos)
+		self.dm.MoveTo(*self.pos)
+		self.dm.RightClick()
 	def find_pos(self):
 		self.dm.Capture(0, 0, 2000, 2000, r"C:\\Users\\Administrator\\Desktop\\123.jpg")
 		pic = cv2.imread(r"C:\\Users\\Administrator\\Desktop\\123.jpg")
