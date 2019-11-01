@@ -2,9 +2,9 @@ import cv2,json
 # import tensorflow as tf
 import numpy as np
 import sys,os
-from picProcesser import picProcesser
+from picProcessor import picProcessor
 
-p = picProcesser(test=True)
+p = picProcessor(test=True)
 if __name__ == '__main__':
 	# if len(sys.argv) == 1:
 	# 	gameIndex = 9
@@ -29,10 +29,10 @@ if __name__ == '__main__':
 	# 			print(dic['file'],dic['params']['HP'])
 	# 			img =cv2.imread(path + '{}.png'.format(dic['file']))
 	# 			print(img.shape)
-	# 			p.getPic(img)
+	# 			p.get_pic(img)
 
 	# for i in range(10):
 	# index = i * 50 + 13
 
 	img = cv2.imread(r'D:\develop\autoLOL\ans\game1\10.png')
-	p.getPic(img,test =True)
+	p.get_pic(img, test =True)

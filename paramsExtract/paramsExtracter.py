@@ -20,10 +20,10 @@ def paramExtract(self,gameRuning = True):
 	params['HP'] = hpExtract(self)
 
 	if not gameRuning:
-		moneyPic = self.elementExtract('MONEY',pic)
-		params['money'] = get_charter(self.ai,moneyPic)
+		moneyPic = self.element_extract('MONEY', pic)
+		params['money'] = get_charter(moneyPic)
 
-		expPic = self.elementExtract('EXP',pic)
+		expPic = self.element_extract('EXP', pic)
 		params['exp'] = current_exp(expPic)
 		params['postionIndex'] = int(close_postion_index)
 		# print('money:{} exp:{}'.format(params['money'],params['exp']))

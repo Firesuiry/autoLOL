@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 from sklearn.cluster import MeanShift
 
+
 def postionInSmallMapExtract(self, mapPic):
 	# input pic is 0 and 1 matric
 	# 输入是小地图那个白框的矩阵图像，所有值只有0和1
@@ -13,7 +14,7 @@ def postionInSmallMapExtract(self, mapPic):
 
 	kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))  # 定义结构元素
 	mapPic = cv2.morphologyEx(mapPic, cv2.MORPH_OPEN, kernel)  # 开运算
-	# self.picDisplay(mapPic,'map2')
+	# self.pic_display(mapPic,'map2')
 	# exit()
 
 	lieHe = np.sum(mapPic, axis=0)  # 每列求和，最后是一行
@@ -138,7 +139,7 @@ def postionExtract(self):
 	'''
 
 	pic = self.currentPic
-	pic = self.elementExtract('MAP', pic)
+	pic = self.element_extract('MAP', pic)
 
 	pic = cv2.cvtColor(pic, cv2.COLOR_BGR2GRAY)
 
@@ -150,7 +151,7 @@ def postionExtract(self):
 def centerParaExtract(self):
 	centerPoint = postionExtract(self)
 	#print('after extract:{}'.format(centerPoint))
-	centerPoint = self.pointTransform(centerPoint, True)
+	centerPoint = self.point_transform(centerPoint, True)
 	#print('after Transform:{}'.format(centerPoint))
 	#print(centerPoint)
 	closePointIndex = closePointDetact(self,centerPoint, self.bottomNodeList)
