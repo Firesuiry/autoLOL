@@ -85,13 +85,13 @@ class operater(MainCommucation):
 		'''
 		if attack:
 			key = 'A'
-			self.addKeyboardCommandToJson(key, Down=True)
-			self.addMouseCommandToJson(postionOnMap[0], postionOnMap[1], liftClick=True)
-			self.addKeyboardCommandToJson(key, Up=True)
+			self.keyboardCommand(key, Down=True)
+			self.mouseCommand(postionOnMap[0], postionOnMap[1], liftClick=True)
+			self.keyboardCommand(key, Up=True)
 		else:
-			self.addMouseCommandToJson(postionOnMap[0], postionOnMap[1], rightClick=True)
+			self.mouseCommand(postionOnMap[0], postionOnMap[1], rightClick=True)
 
-	def addKeyboardCommandToJson(self, keyChar, delay=100, Down=False, Up=False):
+	def keyboardCommand(self, keyChar, delay=100, Down=False, Up=False):
 		mathodName = 'KeyPressChar'
 
 		if Down:
@@ -99,7 +99,7 @@ class operater(MainCommucation):
 		if Up:
 			mathodName = 'KeyUpChar'
 
-		# print('addKeyboardCommandToJson mathod:{} key:{} delay={}'.format(mathodName,keyChar,delay))
+		# print('keyboardCommand mathod:{} key:{} delay={}'.format(mathodName,keyChar,delay))
 		command = {
 			'name': mathodName,
 			'key': keyChar,
@@ -107,7 +107,8 @@ class operater(MainCommucation):
 		}
 		self.excuteCommand(command)
 
-	def addMouseCommandToJson(self, x=-1, y=-1, liftClick=False, rightClick=False, delay=100):
+
+	def mouseCommand(self, x=-1, y=-1, liftClick=False, rightClick=False, delay=100):
 		'''
 		:param x: -1==NoMove
 		:param y: -1==NoMove
@@ -116,7 +117,7 @@ class operater(MainCommucation):
 		:param delay:
 		:return:
 		'''
-		# print('addMouseCommandToJson x:{} y:{} liftClick:{} rightClick:{} delay={}'.format(x,y,liftClick,rightClick,delay))
+		# print('mouseCommand x:{} y:{} liftClick:{} rightClick:{} delay={}'.format(x,y,liftClick,rightClick,delay))
 		if x != -1 and y != -1:
 			mathodName = 'MoveTo'
 			command = {
@@ -178,8 +179,7 @@ class operater(MainCommucation):
 
 if __name__ == "__main__":
 	p = operater(1)
-	p.addKeyboardCommandToJson('a', Down=True)
-	p.addMouseCommandToJson(619, 425, liftClick=True)
-	p.addKeyboardCommandToJson('a', Up=True)
-
+	p.keyboardCommand('a', Down=True)
+	p.mouseCommand(619, 425, liftClick=True)
+	p.keyboardCommand('a', Up=True)
 	p.sendCommand()
