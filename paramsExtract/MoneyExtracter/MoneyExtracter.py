@@ -2,6 +2,9 @@ import numpy as np
 import cv2
 from typing import Any
 import tensorflow as tf
+from setting import *
+
+from modelManger import model_manager
 
 
 def RemoveZero(det: np.array) -> np.array:
@@ -14,7 +17,7 @@ def RemoveZero(det: np.array) -> np.array:
 	det = np.delete(det, need_del, axis=0)
 	return det
 
-def get_charter(AImanager:Any,pic: np.array) -> int:
+def get_charter(pic: np.array) -> int:
 
 	"""通过取阈值来得到的二值化图像，再通过是否存在像素点来分割图像"""
 	"""返回值:分割图像的numpy数组"""
@@ -36,7 +39,7 @@ def get_charter(AImanager:Any,pic: np.array) -> int:
 			done_array = det[:, k:e]
 			w_add, h_add = 12 - done_array.shape[0], 7 - done_array.shape[1]
 			ret.append(np.pad(done_array, ((w_add, 0), (0, h_add)), "constant", constant_values=(0, 0)))
-		ll = np.argmax(AImanager.useModel("Money.h5", np.array(ret)), axis=1).tolist()
+		ll = np.argmax(model_manager.useModel("Money.h5", np.array(ret)), axis=1).tolist()
 		p = ""
 		for i in ll:
 			p += str(i)

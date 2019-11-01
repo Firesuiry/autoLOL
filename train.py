@@ -2,7 +2,7 @@ import cv2,json
 # import tensorflow as tf
 import numpy as np
 import sys,os
-from picProcesser import picProcesser
+from picProcessor import picProcessor
 import pathlib
 from setting import *
 
@@ -129,7 +129,7 @@ def generateData(path,p,reCaculateParms = False,reCaculateScore = False):
 				dic = json.loads(s)
 				img =cv2.imread(path + '{}.png'.format(dic['file']))
 				print('current file:{}'.format(path + '{}.png'.format(dic['file'])))
-				params = p.paramExtract(img,False)
+				params = p.param_extract(img, False)
 				dic['params'] = params
 				dataList.append(dic)
 			# if len(dataList) > 1:
@@ -193,7 +193,7 @@ def generateData(path,p,reCaculateParms = False,reCaculateScore = False):
 		f.write(json_str)
 
 if __name__ == '__main__':
-	p = picProcesser(test=True)
+	p = picProcessor(test=True)
 
 	if DATA_ADDRESS == '':
 		data_root = PROJECT_ADDRESS + r'ans'

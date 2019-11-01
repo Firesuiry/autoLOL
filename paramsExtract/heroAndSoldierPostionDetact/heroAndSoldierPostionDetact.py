@@ -81,7 +81,6 @@ class targetDetacter():
 			print(max_val,res[max_loc[1],max_loc[0]],np.max(res))
 			print('max_loc:{} max_val:{}'.format(max_loc,max_val))
 
-
 			horizen0 = np.max([0,max_loc[1]-h//2])
 			horizen1 = np.min([h2,max_loc[1]+h//2])
 			vertical0 = np.max([0,max_loc[0]-w//2])
