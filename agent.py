@@ -6,18 +6,23 @@ from setting import *
 import time,cv2
 
 class agent():
-    def __init__(self,id = 1):
-        self.operater = operater()
-        self.pic_processer = picProcessor(self.operater, test=False)
+    def __init__(self,id = 1,test = False):
+        if not test:
+            self.operator = operater()
+        else:
+            self.operator = None
+        self.pic_processor = picProcessor(self.operator, test=False)
         self.state = SMART_CONTROL_MODE
         self.id = id
 
-        self.mainLoop()
+        if not test:
+            self.mainLoop()
 
-    def mainLoop(self):
+
+    def mainLoop(self, test):
         while (True):
             newT = time.time()
-            ret = self.operater.Capture(0, 0, 2000, 2000, r"screen1/0.bmp")
+            ret = self.operator.Capture(0, 0, 2000, 2000, r"screen1/0.bmp")
             # print('截图结果：{}'.format(ret))
             if ret == 0:
                 print('capture fail')
@@ -28,7 +33,7 @@ class agent():
             # print('读取图片完成 花费时间：{}'.format(time.time() - newT))
             if pic is not None:
                 if self.state == SMART_CONTROL_MODE:
-                    self.pic_processer.get_pic(pic)
+                    self.pic_processor.get_pic(pic)
                 elif self.state == ARTIFICIAL_CONTROL_MODE:
                     pass
                 print('命令发送完成 花费时间：{}'.format(time.time() - newT))

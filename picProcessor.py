@@ -27,13 +27,13 @@ class picProcessor:
         }
 
         # 节点名称介绍
-        '''
+        """
         首位 L左下边 R右上边
         次位 Base基地（结束） T上 M中 B下
         再次 Node 召唤节点（结束） T塔 R河道边
         再次 1高地塔（结束） 2二塔（结束） 3边塔（结束） 0门牙塔
         再次 0左门牙塔（结束） 1右门牙塔（结束）
-'''
+        """
         self.nodesPostions = {
             'LSpring': [1105, 707],
             'LBase': [1119, 694],
@@ -137,7 +137,7 @@ class picProcessor:
         :param params: 
         :return: 动作字典
         """
-        
+
         pic = self.currentPic.copy()
 
         img = cv2.resize(pic, (256, 448))
@@ -197,7 +197,10 @@ class picProcessor:
         else:
             params = paramExtract(self, False)
             action = self.determine_action(params)
-            self.operater.actionExcute(action, params)
+            print('action:')
+            print(action)
+            print('params')
+            print(params)
 
 
 if __name__ == "__main__":

@@ -1,10 +1,8 @@
 import cv2,json
-# import tensorflow as tf
-import numpy as np
-import sys,os
 from picProcessor import picProcessor
+from agent import agent
 
-p = picProcessor(test=True)
+p = agent(test=True)
 if __name__ == '__main__':
 	# if len(sys.argv) == 1:
 	# 	gameIndex = 9
@@ -35,4 +33,4 @@ if __name__ == '__main__':
 	# index = i * 50 + 13
 
 	img = cv2.imread(r'D:\develop\autoLOL\ans\game1\10.png')
-	p.get_pic(img, test =True)
+	p.pic_processor.get_pic(img, test=True)
