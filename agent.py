@@ -6,20 +6,19 @@ from setting import *
 import time,cv2
 
 class agent():
-    def __init__(self,id = 1,test = False):
+    def __init__(self, agent_id=1, test=False):
         if not test:
             self.operator = operater()
         else:
             self.operator = None
         self.pic_processor = picProcessor(self.operator, test=False)
         self.state = SMART_CONTROL_MODE
-        self.id = id
-
+        self.id = agent_id
         if not test:
             self.mainLoop()
 
 
-    def mainLoop(self, test):
+    def mainLoop(self):
         while (True):
             newT = time.time()
             ret = self.operator.Capture(0, 0, 2000, 2000, r"screen1/0.bmp")

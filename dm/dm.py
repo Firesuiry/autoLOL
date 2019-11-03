@@ -4,6 +4,7 @@ import time
 import os, json
 import win32com.client
 import sys
+from dm_setting import *
 
 class dmBase():
 	def __init__(self):
@@ -60,7 +61,7 @@ class dmManager(dmBase):
 		self.checkHwnd()
 
 	def checkHwnd(self):
-		windowName = "League of Legends (TM) Client"
+		windowName = GAME_WINDOW_NAME
 		hwnds = self.dm.EnumWindow(0, windowName, "", 1 + 4 + 8 + 16)
 		print('hwnds:',hwnds)
 		print(type(hwnds))
