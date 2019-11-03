@@ -21,27 +21,33 @@ class targetDetacter():
 
 	@staticmethod
 	def colorCheck(img,postions,blue = False,red = False):
+		print("check RED:",red)
 		new_postions = []
 		for pos in postions:
 			x = pos[0] + 1
 			y = pos[1] + 1
 
 			color = img[pos[1]+1:pos[1] + 4,pos[0]+1,:]
-			cv2.imwrite('f.png',color)
-			print(img.shape)
-			print(color.shape)
+			# cv2.imwrite('f.png',color)
+			# print(img.shape)
+			# print(color.shape)
 			b = color[:,0]
 			g = color[:,1]
 			r = color[:,2]
 			right_bool = False
-			# print('pos:',pos)
-			# print('color:',color)
-			# if blue:
-			# 	right_bool =
 
+			if blue:
+				right_bool = (((b > r) * (b > g) * (b > 100)) > 0).any()
+			if red:
+				right_bool = (((r > b) * (r > g) * (r > 100)) > 0).any()
+
+			if red and right_bool:
+				print('pos:',pos)
+				print('color:',color)
 
 			if right_bool:
 				new_postions.append(pos)
+
 		return new_postions
 
 
@@ -56,12 +62,13 @@ class targetDetacter():
 
 		new_ally_soldier_postions = []
 		new_enemy_soldier_postions = []
-		self.colorCheck(img0,ally_soldier_postions)
+		new_ally_soldier_postions = self.colorCheck(img0,ally_soldier_postions,blue=True)
+		new_enemy_soldier_postions = self.colorCheck(img0,enemy_soldier_postions,red=True)
 
 
 		dic['hero'] = hero_postions
-		dic['enemy_soldier'] = enemy_soldier_postions
-		dic['ally_soldier'] = ally_soldier_postions
+		dic['enemy_soldier'] = new_enemy_soldier_postions
+		dic['ally_soldier'] = new_ally_soldier_postions
 
 		return dic
 
@@ -116,4 +123,13 @@ hero_soldier_detacter = targetDetacter()
 if __name__ == '__main__':
 	# img0 = cv2.imread(r'D:\develop\autoLOLres\ans1\screen485.bm.jpg')
 	img0 = cv2.imread(r'oriImg.jpg')
-	hero_soldier_detacter.getTargetPostions(img0)
+	target_postion = hero_soldier_detacter.getTargetPostions(img0)
+	ally_postion = target_postion['ally_soldier']
+	img0 = cv2.imread(r'oriImg.jpg')
+	for pos in ally_postion:
+		cv2.circle(img0,tuple(pos),15,(255,0,255),5)
+	enemy_postion = target_postion['enemy_soldier']
+	for pos in enemy_postion:
+		cv2.circle(img0,tuple(pos),5,(0,255,255),5)
+
+	cv2.imwrite('test_img.png',img0)
