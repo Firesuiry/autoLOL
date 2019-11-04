@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import time
 
 class targetDetacter():
 	def __init__(self):
@@ -20,14 +21,15 @@ class targetDetacter():
 
 
 	@staticmethod
-	def colorCheck(img,postions,blue = False,red = False):
-		print("check RED:",red)
+	def soldier_color_check(img, postions, blue = False, red = False):
 		new_postions = []
 		for pos in postions:
 			x = pos[0] + 1
 			y = pos[1] + 1
 
 			color = img[pos[1]+1:pos[1] + 4,pos[0]+1,:]
+
+
 			# cv2.imwrite('f.png',color)
 			# print(img.shape)
 			# print(color.shape)
@@ -37,15 +39,41 @@ class targetDetacter():
 			right_bool = False
 
 			if blue:
-				right_bool = (((b > r) * (b > g) * (b > 100)) > 0).any()
+				right_bool = (((b > r) * (b > g) * (b > 150)) > 0).any()
 			if red:
 				right_bool = (((r > b) * (r > g) * (r > 100)) > 0).any()
 
-			if red and right_bool:
-				print('pos:',pos)
-				print('color:',color)
-
 			if right_bool:
+				new_postions.append(pos)
+
+		return new_postions
+
+	@staticmethod
+	def hero_color_check(img, postions):
+		new_postions = []
+		for pos in postions:
+			x = pos[0] + 1
+			y = pos[1] + 1
+
+			color = img[pos[1] + 20:pos[1] + 23, pos[0] + 27, :]
+			# cv2.imwrite('f.png',img[pos[1]+20:pos[1] + 23, pos[0]+27:pos[0] + 50, :])
+
+			b = color[:,0]
+			g = color[:,1]
+			r = color[:,2]
+			right_bool = False
+
+			right_bool = (((b > r) * (b > g) * (b > 100)) > 0).any()
+
+			color0 = img[pos[1]:pos[1] + 20, pos[0]:pos[0]+20, :]
+
+			color = np.sum(color0,axis=2)
+			right_bool2 = np.max(color) > 600
+
+
+			right_bool = right_bool and right_bool2
+			if right_bool:
+				# cv2.imwrite('pic/{}f{}-{}.png'.format(right_bool2, pos,np.max(color)), color0)
 				new_postions.append(pos)
 
 		return new_postions
@@ -53,20 +81,25 @@ class targetDetacter():
 
 	def getTargetPostions(self,img):
 		dic = {}
-		hero_postions = self.findPics(img, self.hero_target, self.hero_mask, test='hero',threshold = 0.96,color=[0,0,255])
+		# hero_postions = self.findPics(img, self.hero_target, self.hero_mask, test='hero',threshold = 0.96,color=[0,0,255])
+		hero_postions = self.findPics(img, self.hero_target, self.hero_mask,threshold = 0.96,color=[0,0,255])
+		new_heros_postion = self.hero_color_check(img, hero_postions)
 
 		img0 = img.copy()
 		img0 = self.colorClear(img0)
-		enemy_soldier_postions = self.findPics(img0, self.enemy_soldier_target_full, self.soldier_mask_full, test='enemy_soldier',threshold= 0.85,color=[255,255,255],maxThreshold= 0.999)
-		ally_soldier_postions = self.findPics(img0, self.ally_soldier_target_full, self.soldier_mask_full, test='ally_soldier',threshold= 0.85,color=[255,255,255],maxThreshold= 0.999)
+		# enemy_soldier_postions = self.findPics(img0, self.enemy_soldier_target_full, self.soldier_mask_full, test='enemy_soldier',threshold= 0.85,color=[255,255,255])
+		enemy_soldier_postions = self.findPics(img0, self.enemy_soldier_target_full, self.soldier_mask_full,threshold= 0.85,color=[255,255,255])
+		# ally_soldier_postions = self.findPics(img0, self.ally_soldier_target_full, self.soldier_mask_full, test='ally_soldier',threshold= 0.85,color=[255,255,255])
+		ally_soldier_postions = self.findPics(img0, self.ally_soldier_target_full, self.soldier_mask_full,threshold= 0.85,color=[255,255,255])
 
 		new_ally_soldier_postions = []
 		new_enemy_soldier_postions = []
-		new_ally_soldier_postions = self.colorCheck(img0,ally_soldier_postions,blue=True)
-		new_enemy_soldier_postions = self.colorCheck(img0,enemy_soldier_postions,red=True)
+		new_ally_soldier_postions = self.soldier_color_check(img0, ally_soldier_postions, blue=True)
+		new_enemy_soldier_postions = self.soldier_color_check(img0, enemy_soldier_postions, red=True)
 
 
-		dic['hero'] = hero_postions
+
+		dic['hero'] = new_heros_postion
 		dic['enemy_soldier'] = new_enemy_soldier_postions
 		dic['ally_soldier'] = new_ally_soldier_postions
 
@@ -74,7 +107,7 @@ class targetDetacter():
 
 	@staticmethod
 	def findPics(oriImg, targetImg, mask = None, threshold=0.8, test='',color = [255,0,0] , maxThreshold = 1.1):
-		print(oriImg.shape)
+		# print(oriImg.shape)
 		h, w = targetImg.shape[:2]  # rows->h, cols->w
 		h2, w2 = oriImg.shape[:2]  # rows->h, cols->w
 		res = cv2.matchTemplate(oriImg, targetImg, cv2.TM_CCORR_NORMED, mask=mask)
@@ -85,8 +118,8 @@ class targetDetacter():
 			min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
 			#找出来以后 loc的左边顺序是反的
 
-			print(max_val,res[max_loc[1],max_loc[0]],np.max(res))
-			print('max_loc:{} max_val:{}'.format(max_loc,max_val))
+			# print(max_val,res[max_loc[1],max_loc[0]],np.max(res))
+			# print('max_loc:{} max_val:{}'.format(max_loc,max_val))
 
 			horizen0 = np.max([0,max_loc[1]-h//2])
 			horizen1 = np.min([h2,max_loc[1]+h//2])
@@ -121,15 +154,24 @@ class targetDetacter():
 hero_soldier_detacter = targetDetacter()
 
 if __name__ == '__main__':
-	# img0 = cv2.imread(r'D:\develop\autoLOLres\ans1\screen485.bm.jpg')
-	img0 = cv2.imread(r'oriImg.jpg')
-	target_postion = hero_soldier_detacter.getTargetPostions(img0)
-	ally_postion = target_postion['ally_soldier']
-	img0 = cv2.imread(r'oriImg.jpg')
-	for pos in ally_postion:
-		cv2.circle(img0,tuple(pos),15,(255,0,255),5)
-	enemy_postion = target_postion['enemy_soldier']
-	for pos in enemy_postion:
-		cv2.circle(img0,tuple(pos),5,(0,255,255),5)
+	start = time.time()
+	for i in range(8):
+		index = i * 1000 + 53
+		img0 = cv2.imread(r'D:\develop\autoLOL\ans\game0\{}.png'.format(index))
+		# img0 = cv2.imread(r'0.png')
+		target_postion = hero_soldier_detacter.getTargetPostions(img0)
+		ally_postion = target_postion['ally_soldier']
+		img0 = cv2.imread(r'D:\develop\autoLOL\ans\game0\{}.png'.format(index))
+		# img0 = cv2.imread(r'0.png')
+		for pos in ally_postion:
+			cv2.circle(img0,tuple(pos),15,(255,0,255),5)
+		enemy_postion = target_postion['enemy_soldier']
+		for pos in enemy_postion:
+			cv2.circle(img0,tuple(pos),5,(0,255,255),5)
+		hero_postion = target_postion['hero']
+		for pos in hero_postion:
+			cv2.circle(img0,tuple(pos),10,(255,255,0),5)
 
-	cv2.imwrite('test_img.png',img0)
+		# cv2.imwrite('pic/test_img{}.png'.format(index),img0)
+	need_time = time.time() - start
+	print('花费时间:{} 平均每个：{}'.format(need_time,need_time/8))
