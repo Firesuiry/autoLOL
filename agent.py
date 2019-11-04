@@ -21,7 +21,7 @@ class agent():
     def mainLoop(self):
         while (True):
             newT = time.time()
-            ret = self.operator.Capture(0, 0, 2000, 2000, r"screen1/0.bmp")
+            ret = self.operator.Capture(0, 0, 2000, 2000, r"dm/screen1/0.bmp")
             # print('截图结果：{}'.format(ret))
             if ret == 0:
                 print('capture fail')
