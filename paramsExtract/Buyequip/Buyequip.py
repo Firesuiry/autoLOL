@@ -17,7 +17,7 @@ class BaseEquip:
 			self.Priorty = 2
 		elif needmoney > 3000:
 			self.Priorty = 1
-		self.need_Equip = need_Equip
+		self.NeedEquip = need_Equip
 class Equips:
 	def __init__(self):
 		#保存所有装备的列表
@@ -158,11 +158,12 @@ class Equips:
 		]
 		for i in EquipList:
 			self.EquipList.append(BaseEquip(*i))
-	def ReturnEquipName(self,Name=None,id=None,attr="pinyin"):
+	def ReturnEquip(self,Name=None,id=None):
 		"""通过id或者名字返回属性"""
 		for i in self.EquipList:
 			if i.id == id or i.name == Name:
-				return getattr(i,attr)
+				return i
+		return
 	def ReturnInside(self,Name=None,id=None):
 		"""通过id或者名字返回是否存在列表内"""
 		for i in self.EquipList:
@@ -211,14 +212,45 @@ class Main:
 		print("定位完成{}".format(str(self.pos)))
 		self.Action_QuitShop()
 	def CanBuyEquips(self,Money:int):
-		"""通过传入的钱数来回传可购买的装备"""
+		"""
+		通过传入的钱数来回传可购买的装备
+		"""
 		CanBuyList = []
-		EM = self.EquipList.ReturnEquipName(self.DefaultList[self.Number])
-		if Money >= EM:
-			CanBuyList.append(self.DefaultList[self.Number])
+		if self.Number > 6:
+			return CanBuyList
+		Nokoru_Money = Money
+		EM = self.EquipList.ReturnEquip(self.DefaultList[self.Number])
+		CP = 0
+		while Nokoru_Money:
+			if Nokoru_Money >= EM.NeedMoney:
+				CanBuyList.append(self.DefaultList[self.Number])
+				Nokoru_Money -= EM
+				self.Number += 1
+				if self.Number > 6:
+					break
+				EM = self.EquipList.ReturnEquip(self.DefaultList[self.Number])
+			elif Nokoru_Money < EM.NeedMoney:
+				EM = self.EquipList.ReturnEquip(EM.NeedEquip[CP])
+				CP += 1
+		return CanBuyList
 
+	def ChildBuy(self, EM:BaseEquip, Money:int):
+		CanBuyList = []
+		Nokoru_Money = Money
+		for i in EM.NeedEquip:
+			E_M = self.EquipList.ReturnEquip(id=i)
+			if Nokoru_Money > E_M.NeedMoney:
+				CanBuyList.append(E_M.name)
+				Nokoru_Money -= E_M.NeedMoney
+			else:
+				arg = self.ChildBuy(E_M,Nokoru_Money)
+				if arg:
+					for i in arg:
+						CanBuyList.append(i)
+						Nokoru_Money -= self.EquipList.ReturnEquip(i).NeedMoney
+		return CanBuyList
 	def EnterEquipName(self,Name:str):
-		pinyin = self.EquipList.ReturnEquipName(Name)
+		pinyin = self.EquipList.ReturnEquip(Name).pinyin
 		if pinyin:
 			for i in pinyin:
 				self.dm.KeyPressChar(i)
@@ -270,5 +302,6 @@ if __name__ == '__main__':
 	import time
 	dm = dm.MainCommucation()
 	ww =Main(dm)
-	print(ww.DefaultList)
+	pp = ww.EquipList.ReturnEquip(ww.DefaultList[0])
+	print(ww.ChildBuy(pp,6000))
 
