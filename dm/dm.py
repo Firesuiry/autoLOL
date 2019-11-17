@@ -3,7 +3,7 @@ import DmCommucation as dc
 import time
 import os, json
 
-import cv2
+# import cv2
 import win32com.client
 import sys
 from dm_setting import *
@@ -142,7 +142,11 @@ if __name__ == '__main__':
 			windowName = "League of Legends (TM) Client - [Windows 7 x64]"
 		dm = win32com.client.Dispatch('dm.dmsoft')  #调用大漠插件
 		print(dm.ver())#输出版本号
-		hwnds = dm.EnumWindow(0,windowName,"",1+4+8+16)
+		hwnds = ''
+		while hwnds == '':
+			hwnds = dm.EnumWindow(0,windowName,"",1+4+8+16)
+			time.sleep(1)
+			print('未找到游戏进程 等待1s')
 		print(hwnds)
 		hwnd = int(hwnds)
 

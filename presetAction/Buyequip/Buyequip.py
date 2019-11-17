@@ -187,6 +187,7 @@ class Main:
 		self.FBP = FristBuyPriorty
 		self.EquipList = Equips()
 		self.dm = dm
+		self.pos = (0, 0)
 		if DefaultEquips:
 			self.DefaultList = DefaultEquips
 			if len(self.DefaultList) > 6:
@@ -270,10 +271,9 @@ class Main:
 		self.dm.RightClick()
 
 	def find_pos(self):
-		self.dm.Capture(0, 0, 2000, 2000, r"C:\\Users\\Administrator\\Desktop\\123.jpg")
-		pic = cv2.imread(r"C:\\Users\\Administrator\\Desktop\\123.jpg")
+		pic = self.dm.get_game_img()
 		img_gray = cv2.cvtColor(pic, cv2.COLOR_BGR2GRAY)
-		template = cv2.imread(r"C:\\Users\\Administrator\\Desktop\\duolan.png", 0)
+		template = cv2.imread(r"duolan.png", 0)
 		res = cv2.matchTemplate(img_gray, template, cv2.TM_CCOEFF_NORMED)
 		min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
 		self.pos = tuple(map(lambda x: x + 25, max_loc))

@@ -4,8 +4,9 @@ import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 from reviewAndTrain.dataStore import dataStore
-from modelManger import model_manager
+from setting import *
 
+game_state_check_running_img = cv2.imread(PROJECT_ADDRESS + 'resource/GAME_STATE_CHECK_RUNNING.bmp')
 
 class picProcessor:
     def __init__(self, op, test=False):
@@ -13,6 +14,7 @@ class picProcessor:
         self.operater = op
         if not test:
             self.ds = dataStore()
+
 
         # 以下初始化一些数据
         self.currentPic = None
@@ -139,48 +141,21 @@ class picProcessor:
         self.currentPic = img
         return paramExtract(self, game_running)
 
-    def get_pic(self, pic: np.ndarray, test=False):
-        """
-        获取图片的函数，图片从此开始处理
-        :param test:是否处于非游戏状态
-        :param pic:游戏全图
-        :return:
-        """
-
-        # 获取OB
-        assert (pic.shape == (720, 1280, 3))
-        same = (pic == self.currentPic).all()
-        print('获取图片 重复判断结果：{}'.format(same))
-        if same:
-            return
-        self.currentPic = pic
-        errorTimes = 0
-        if not test:
-            try:
-                # OB加工
-                params = paramExtract(self)
-                # 动作选择
-                action = self.determine_action(params)
-                targetAction = self.operater.actionExcute(action, params)
-
-                # 动作保存
-                self.ds.storeResult(pic, params, targetAction)
-                errorTimes = 0
-            except Exception as e:
-                print("图片处理错误，详情：{}".format(e))
-                errorTimes += 1
-                if errorTimes > 10:
-                    raise ()
-                return -1
-        else:
-            params = paramExtract(self, False)
-            action = self.determine_action(params)
-            print('action:')
-            print(action)
-            print('params')
-            print(params)
+    @staticmethod
+    def loading_complete(img):
+        res = cv2.matchTemplate(img, game_state_check_running_img, cv2.TM_CCOEFF_NORMED)
+        min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
+        print(max_val)
+        return max_val > 0.9
 
 
 if __name__ == "__main__":
-    pass
+    filename = 'screen208.bmp'
+    img = cv2.imread(r'D:\develop\autoLOL\dm\ans\\' + filename)
+    print(picProcessor.loading_complete(img))
+
+    filename = 'screen216.bmp'
+    img = cv2.imread(r'D:\develop\autoLOL\dm\ans\\' + filename)
+    print(picProcessor.loading_complete(img))
+
 

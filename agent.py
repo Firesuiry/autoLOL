@@ -4,6 +4,15 @@ from RL_brain import policy_gradient
 from setting import *
 import time,cv2
 from reviewAndTrain.dataStore import dataStore
+from enum import Enum
+
+
+class GAME_STATE(Enum):
+    LOADING = 0
+    RUNNING_INIT = 1
+    RUNNING = 2
+    ENDING = 3
+
 
 class agent():
     def __init__(self, agent_id=1, test=False):
@@ -12,10 +21,11 @@ class agent():
         else:
             self.operator = None
         self.pic_processor = picProcessor(self.operator, test=False)
-        self.state = SMART_CONTROL_MODE
         self.id = agent_id
         self.brain = policy_gradient()
         self.ds = dataStore()
+
+        self.game_state = GAME_STATE.LOADING
         if not test:
             self.mainLoop()
 
@@ -23,37 +33,37 @@ class agent():
     def mainLoop(self):
         while (True):
             # ###########################获取ob
-            newT = time.time()
-            ret = self.operator.Capture(0, 0, 2000, 2000, r"dm/screen1/0.bmp")
-            # print('截图结果：{}'.format(ret))
-            if ret == 0:
-                print('capture fail')
-                time.sleep(0.1)
+            img = self.operator.get_game_img()
+
+            # ###########################游戏阶段判断
+            if self.game_state == GAME_STATE.LOADING:
+                loading_complete = self.pic_processor.loading_complete(img)
+                if loading_complete:
+                    self.game_state = GAME_STATE.RUNNING_INIT
                 continue
-            img = self.loadPic(r'dm\screen1/0.bmp')
+
+            if self.game_state == GAME_STATE.RUNNING_INIT:
+                pass
+                self.game_state = GAME_STATE.RUNNING
+
             # ############################ob加工
-            params = self.pic_processor.param_extract(img)
+            try:
+                params = self.pic_processor.param_extract(img)
+            except Exception as e:
+                print(e)
+                time.sleep(1)
+                continue
 
             # #############################动作选择
             action = self.brain.determine_action(params)
 
             # #############################动作执行
-            action_last_time = self.operator.actionExcute(action, params)
+            self.operator.actionExcute(action, params)
 
             # #############################记忆储存
             self.ds.storeResult(img, params, action)
 
-
-
-            if pic is not None:
-                if self.state == SMART_CONTROL_MODE:
-                    self.pic_processor.get_pic(pic)
-                elif self.state == ARTIFICIAL_CONTROL_MODE:
-                    pass
-                print('命令发送完成 花费时间：{}'.format(time.time() - newT))
-                time.sleep(0.05)
-            else:
-                time.sleep(0.1)
+            time.sleep(0.1)
 
     def loadPic(self, path='res/Screen01.png'):
         pic = cv2.imread(path)
