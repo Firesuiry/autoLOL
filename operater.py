@@ -76,7 +76,6 @@ class operater(MainCommucation):
 			raise
 		return targetAction
 
-
 	def MoveToPostion(self, postionOnMap, attack=True):
 		'''
 		攻击移动前往坐标
