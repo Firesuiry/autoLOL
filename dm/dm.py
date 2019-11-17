@@ -2,9 +2,15 @@
 import DmCommucation as dc
 import time
 import os, json
+
+import cv2
 import win32com.client
 import sys
 from dm_setting import *
+
+
+PATH = os.path.abspath(__file__)[:-5]
+print('当前文件执行目录：', PATH)
 
 class dmBase():
 	def __init__(self):
@@ -20,7 +26,7 @@ class dmBase():
 		return command
 
 
-class dmOperater(dmBase, dc.DmCommucation):
+class dmOperater(dc.DmCommucation):
 	def __init__(self, id, hwnd, manager):
 		self.id = id
 		self.hwnd = hwnd
@@ -49,8 +55,48 @@ class dmOperater(dmBase, dc.DmCommucation):
 
 		return dock if item not in self.__dict__ else getattr(self, item)
 
+class dm_hall_operater():
+	def __init__(self, id, hwnd, manager):
+		self.get_resource('screen')
+		self.id = id
+		self.hwnd = hwnd
+		self.manager = manager
+		print ('dm_hall_operater 启动，id：{} hwnd:{}'.format(id, hwnd))
+		self.dm = win32com.client.Dispatch('dm.dmsoft')  # 调用大漠插件
+		dm_ret = self.dm.SetShowErrorMsg(0)
+		dm_ret = self.dm.BindWindowEx(hwnd, "gdi", "windows", "windows", "", 0)
+		print('窗口绑定结果：%s' % dm_ret)
+		if dm_ret == 0:
+			return
+		self.dm.MoveWindow(hwnd, 1, 1)
+		self.dm.LockInput(1)
+		if not os.path.exists('screen' + str(self.id)):
+			os.makedirs('screen' + str(self.id))
 
-class dmManager(dmBase):
+	def capture(self):
+		dm_ret = self.dm.Capture(0, 0, 2000, 2000, PATH + "screen%s/0.bmp" % self.id)
+		print('截图结果：{}'.format(dm_ret))
+		if str(dm_ret) is not '0':
+			return cv2.imread(PATH + "screen%s/0.bmp" % self.id)
+
+	@staticmethod
+	def get_resource(name):
+		path = PATH + name + '.png'
+		if not os.path.exists(path):
+			print(path,'不存在')
+			return
+		img = cv2.imread(path)
+		return img
+
+	def find_pic(self):
+		pass
+
+
+
+
+
+
+class dmManager():
 	def __init__(self):
 		self.id = 0
 		self.dm = win32com.client.Dispatch('dm.dmsoft')  # 调用大漠插件
@@ -84,6 +130,9 @@ class dmManager(dmBase):
 
 if __name__ == '__main__':
 	if len(sys.argv) == 1:
+		dm_hall_operater()
+		exit()
+
 		dm = dmManager()
 	else:
 		print(sys.argv)

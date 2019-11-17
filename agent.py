@@ -1,9 +1,9 @@
-from screenCap import screenCap
 from picProcessor import picProcessor
 from operater import operater
-from dm.MainCommucation import MainCommucation
+from RL_brain import policy_gradient
 from setting import *
 import time,cv2
+from reviewAndTrain.dataStore import dataStore
 
 class agent():
     def __init__(self, agent_id=1, test=False):
@@ -14,12 +14,15 @@ class agent():
         self.pic_processor = picProcessor(self.operator, test=False)
         self.state = SMART_CONTROL_MODE
         self.id = agent_id
+        self.brain = policy_gradient()
+        self.ds = dataStore()
         if not test:
             self.mainLoop()
 
 
     def mainLoop(self):
         while (True):
+            # ###########################获取ob
             newT = time.time()
             ret = self.operator.Capture(0, 0, 2000, 2000, r"dm/screen1/0.bmp")
             # print('截图结果：{}'.format(ret))
@@ -27,9 +30,21 @@ class agent():
                 print('capture fail')
                 time.sleep(0.1)
                 continue
-            # print('截图完成 花费时间：{}'.format(time.time() - newT))
-            pic = self.loadPic(r'dm\screen1/0.bmp')
-            # print('读取图片完成 花费时间：{}'.format(time.time() - newT))
+            img = self.loadPic(r'dm\screen1/0.bmp')
+            # ############################ob加工
+            params = self.pic_processor.param_extract(img)
+
+            # #############################动作选择
+            action = self.brain.determine_action(params)
+
+            # #############################动作执行
+            action_last_time = self.operator.actionExcute(action, params)
+
+            # #############################记忆储存
+            self.ds.storeResult(img, params, action)
+
+
+
             if pic is not None:
                 if self.state == SMART_CONTROL_MODE:
                     self.pic_processor.get_pic(pic)
