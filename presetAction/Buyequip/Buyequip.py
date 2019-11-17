@@ -192,7 +192,7 @@ class Main:
 			if len(self.DefaultList) > 6:
 				self.DefaultList = self.DefaultList[:6]
 		else:
-			self.DefaultList = ["123","饮血剑","夺萃之镰","三项之力","三相之力","三相之力"]
+			self.DefaultList = ["多兰之刃","多兰之刃","多兰之刃","多兰之刃","多兰之刃","三相之力"]
 		self.DefaultList = list(map(self.EquipCheck,self.DefaultList))
 		# 真实购买列表
 		self.NowEquipList = []
