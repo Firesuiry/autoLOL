@@ -3,10 +3,12 @@ import DmCommucation as dc
 import time
 import os, json
 
-# import cv2
+import cv2
 import win32com.client
 import sys
 from dm_setting import *
+import numpy as np
+import multiprocessing as mp
 
 
 PATH = os.path.abspath(__file__)[:-5]
@@ -42,7 +44,13 @@ class dmOperater(dc.DmCommucation):
 		self.dm.LockInput(1)
 		if not os.path.exists('screen' + str(self.id)):
 			os.makedirs('screen' + str(self.id))
-		self.start()
+		while True:
+			try:
+				self.start()
+				break
+			except Exception as e:
+				print('发生错误：{}',e)
+				time.sleep(2)
 
 	def capture(self):
 		dm_ret = self.dm.Capture(0, 0, 2000, 2000, "screen%s/0.bmp" % self.id)
@@ -54,6 +62,7 @@ class dmOperater(dc.DmCommucation):
 			return getattr(self.dm, item)(*args, **kwargs)
 
 		return dock if item not in self.__dict__ else getattr(self, item)
+
 
 class dm_hall_operater():
 	def __init__(self, id, hwnd, manager):
@@ -88,13 +97,15 @@ class dm_hall_operater():
 		img = cv2.imread(path)
 		return img
 
-	def find_pic(self):
-		pass
-
-
-
-
-
+	def find_pic(self, img, target: np.ndarray, the=0.9, center_point=True):
+		res = cv2.matchTemplate(img, target, cv2.TM_CCOEFF_NORMED)
+		min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
+		if max_val < the:
+			return
+		if center_point:
+			return max_val[0] + target.shape[1], max_val[1] + target.shape[0]
+		else:
+			return max_val
 
 class dmManager():
 	def __init__(self):
@@ -104,13 +115,14 @@ class dmManager():
 		self.operaterHwndsList = []
 		self.operaterDict = {}
 		self.opId = 0  # 为了创建operater储存id
-		self.checkHwnd()
+		while True:
+			self.checkHwnd()
+			time.sleep(1)
 
 	def checkHwnd(self):
 		windowName = GAME_WINDOW_NAME
 		hwnds = self.dm.EnumWindow(0, windowName, "", 1 + 4 + 8 + 16)
-		print('hwnds:',hwnds)
-		print(type(hwnds))
+		print('hwnds:[{}]'.format(hwnds))
 		if isinstance (hwnds,str):
 			if hwnds != '':
 				hwnds = [hwnds]
@@ -130,14 +142,13 @@ class dmManager():
 
 if __name__ == '__main__':
 	if len(sys.argv) == 1:
-		dm_hall_operater()
-		exit()
-
 		dm = dmManager()
 	else:
 		print(sys.argv)
 		if sys.argv[1] == '1':
 			windowName = "League of Legends (TM) Client"
+		elif sys.argv[1] == '2':
+			windowName = GAME_HALL_NAME
 		else:
 			windowName = "League of Legends (TM) Client - [Windows 7 x64]"
 		dm = win32com.client.Dispatch('dm.dmsoft')  #调用大漠插件

@@ -1,6 +1,11 @@
-import cv2,time
+import cv2,time,os,sys
 import pypinyin as py
 import dm.MainCommucation as dm
+
+
+PATH = os.path.split(__file__)[0] + '/'
+
+
 class BaseEquip:
 	def __init__(self,id:int,name:str,needmoney:int,need_Equip:list):
 		self.id = id
@@ -193,18 +198,21 @@ class Main:
 			if len(self.DefaultList) > 6:
 				self.DefaultList = self.DefaultList[:6]
 		else:
-			self.DefaultList = ["多兰之刃","多兰之刃","多兰之刃","多兰之刃","多兰之刃","三相之力"]
+			self.DefaultList = ["多兰之刃","多兰之刃","多兰之刃","多兰之刃","多兰之刃","多兰之刃"]
 		self.DefaultList = list(map(self.EquipCheck,self.DefaultList))
 		# 真实购买列表
 		self.NowEquipList = []
+		self.duolan_template = cv2.imread(PATH + r"duolan.png", 0)
+
 	def EquipCheck(self,name):
 		"""检查输入的装备是否都在列表内，不在列表用默认装备代替"""
 		if not self.EquipList.ReturnInside(name):
 			return "三相之力"
 		return name
+
 	def INIT(self):
 		"""找到初始购买的位置，锚定购买坐标"""
-		self.dm.start()
+		# self.dm.start()
 		time.sleep(0.1)
 		self.open_shop()
 		self.EnterEquipName("多兰之刃")
@@ -212,6 +220,13 @@ class Main:
 		self.find_pos()
 		print("定位完成{}".format(str(self.pos)))
 		self.Action_QuitShop()
+
+	def auto_buy_equip(self, money:int):
+		equip_list = self.CanBuyEquips(money)
+		if len(equip_list) > 0:
+			for equip in equip_list:
+				self.Buy(equip)
+
 	def CanBuyEquips(self,Money:int):
 		"""
 		通过传入的钱数来回传可购买的装备
@@ -273,7 +288,7 @@ class Main:
 	def find_pos(self):
 		pic = self.dm.get_game_img()
 		img_gray = cv2.cvtColor(pic, cv2.COLOR_BGR2GRAY)
-		template = cv2.imread(r"duolan.png", 0)
+		template = self.duolan_template
 		res = cv2.matchTemplate(img_gray, template, cv2.TM_CCOEFF_NORMED)
 		min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
 		self.pos = tuple(map(lambda x: x + 25, max_loc))

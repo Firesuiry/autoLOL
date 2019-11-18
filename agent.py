@@ -15,15 +15,17 @@ class GAME_STATE(Enum):
 
 
 class agent():
-    def __init__(self, agent_id=1, test=False):
+    def __init__(self, agent_id=1, test=False ,save_mem=True):
         if not test:
             self.operator = operater()
         else:
             self.operator = None
         self.pic_processor = picProcessor(self.operator, test=False)
         self.id = agent_id
-        self.brain = policy_gradient()
-        self.ds = dataStore()
+        self.brain = policy_gradient(0,0)
+        if save_mem:
+            self.ds = dataStore()
+        self.save_mem = save_mem
 
         self.game_state = GAME_STATE.LOADING
         if not test:
@@ -40,18 +42,21 @@ class agent():
                 loading_complete = self.pic_processor.loading_complete(img)
                 if loading_complete:
                     self.game_state = GAME_STATE.RUNNING_INIT
+                time.sleep(1)
                 continue
 
             if self.game_state == GAME_STATE.RUNNING_INIT:
-                pass
+                self.operator.init_action()
                 self.game_state = GAME_STATE.RUNNING
+                continue
 
             # ############################ob加工
             try:
-                params = self.pic_processor.param_extract(img)
+                params = self.pic_processor.param_extract(img, money=False)
             except Exception as e:
                 print(e)
                 time.sleep(1)
+                raise e
                 continue
 
             # #############################动作选择
@@ -61,13 +66,14 @@ class agent():
             self.operator.actionExcute(action, params)
 
             # #############################记忆储存
-            self.ds.storeResult(img, params, action)
+            if self.save_mem:
+                self.ds.storeResult(img, params, action)
 
-            time.sleep(0.1)
+            time.sleep(1)
 
     def loadPic(self, path='res/Screen01.png'):
         pic = cv2.imread(path)
         return pic
 
 if __name__ == "__main__":
-    a = agent()
+    a = agent(save_mem=False)

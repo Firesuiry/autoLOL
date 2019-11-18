@@ -155,12 +155,7 @@ def generateData(path,p,reCaculateParms = False,reCaculateScore = False):
                 params = p.param_extract(img, False)
                 dic['params'] = params
                 dataList.append(dic)
-        # if len(dataList) > 1:
-        # 	break
-        # print(dataList)
-        # for data in dataList:
-        # 	for key,value in data['params'].items():
-        # 		print(key,value,type(value))
+
         data_list_str = json.dumps(dataList)
         # exit()
         with open(path + 'dataList.txt', "w") as f:  # 设置文件对象

@@ -12,9 +12,6 @@ class picProcessor:
     def __init__(self, op, test=False):
         self.test = test
         self.operater = op
-        if not test:
-            self.ds = dataStore()
-
 
         # 以下初始化一些数据
         self.currentPic = None
@@ -132,14 +129,14 @@ class picProcessor:
         point_in[1] += addRatio * xOffset
         return point_in
 
-    def param_extract(self, img, game_running=True):
+    def param_extract(self, img, **args):
         assert (img.shape == (720, 1280, 3))
         same = (img == self.currentPic).all()
         print('获取图片 重复判断结果：{}'.format(same))
         if same:
             return
         self.currentPic = img
-        return paramExtract(self, game_running)
+        return paramExtract(self, **args)
 
     @staticmethod
     def loading_complete(img):
