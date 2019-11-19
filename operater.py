@@ -6,6 +6,7 @@ import random
 from dm.MainCommucation import MainCommucation
 from presetAction.Buyequip.Buyequip import Main as equip_action
 
+THRESHOLD = 0.5
 
 
 class operater(MainCommucation):
@@ -72,6 +73,17 @@ class operater(MainCommucation):
 		self.keyboardCommand('B')
 		time.sleep(9)
 
+	def moveto_center_of_soldier(self, params):
+		mat = params['mat'][0]
+		all_pos = np.where(mat > THRESHOLD)
+		all_pos = np.array(all_pos)
+		print(all_pos.shape)
+		print(all_pos)
+		exit()
+
+	def attack_nearest_enemy_soldier(self, params):
+		pass
+
 
 	def actionExcute(self: any, action: dict, params: dict):
 		"""
@@ -104,6 +116,14 @@ class operater(MainCommucation):
 		elif action == 3:
 			targetPostion = [590, 358]
 			self.MoveToPostion(targetPostion, True)
+
+		# 走到己方小兵的中心位置
+		elif action == 4:
+			self.moveto_center_of_soldier(params)
+
+		# 攻击最近的敌方小兵
+		elif action == 5:
+			self.attack_nearest_enemy_soldier(params)
 
 		else:
 			print('未实现动作 待实现：[{}]'.format(action))

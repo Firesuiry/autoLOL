@@ -2,7 +2,6 @@
 import DmCommucation as dc
 import time
 import os, json
-
 import cv2
 import win32com.client
 import sys
@@ -66,7 +65,6 @@ class dmOperater(dc.DmCommucation):
 
 class dm_hall_operater():
 	def __init__(self, id, hwnd, manager):
-		self.get_resource('screen')
 		self.id = id
 		self.hwnd = hwnd
 		self.manager = manager
@@ -79,33 +77,76 @@ class dm_hall_operater():
 			return
 		self.dm.MoveWindow(hwnd, 1, 1)
 		self.dm.LockInput(1)
-		if not os.path.exists('screen' + str(self.id)):
-			os.makedirs('screen' + str(self.id))
+		if not os.path.exists(PATH + 'screen' + str(self.id)):
+			os.makedirs(PATH + 'screen' + str(self.id))
+		dm_ret = self.dm.SetPath(PATH + 'screen' + str(self.id))
+		print('路径设置结果：%s' % dm_ret)
+		self.start_game()
 
 	def capture(self):
-		dm_ret = self.dm.Capture(0, 0, 2000, 2000, PATH + "screen%s/0.bmp" % self.id)
-		print('截图结果：{}'.format(dm_ret))
+		# print(PATH + r"screen%s\0.bmp" % self.id)
+		dm_ret = self.dm.Capture(0, 0, 2000, 2000, "0.bmp")
+		# print('截图结果：{}'.format(dm_ret))
 		if str(dm_ret) is not '0':
 			return cv2.imread(PATH + "screen%s/0.bmp" % self.id)
 
 	@staticmethod
 	def get_resource(name):
-		path = PATH + name + '.png'
+		path = PATH + 'resource/' + name + '.png'
 		if not os.path.exists(path):
 			print(path,'不存在')
 			return
 		img = cv2.imread(path)
 		return img
 
-	def find_pic(self, img, target: np.ndarray, the=0.9, center_point=True):
+	def find_pic(self, img, target: np.ndarray, the=0.99, center_point=True):
 		res = cv2.matchTemplate(img, target, cv2.TM_CCOEFF_NORMED)
 		min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
 		if max_val < the:
-			return
+			return 0,0
 		if center_point:
-			return max_val[0] + target.shape[1], max_val[1] + target.shape[0]
+			print('相似度：',max_val)
+			return max_loc[0] + int(target.shape[1]/2), max_loc[1] + int(target.shape[0]/2)
 		else:
 			return max_val
+
+	def start_game(self):
+		pic_name_list = ['PLAY','xunlian','xunlianmoshi','queren','kaishiyouxi','xialu','hanbing','queren2']
+		pic_name_list = ['PLAY','xunlian','xunlianmoshi','queren','kaishiyouxi','xialu','hanbing']
+		self.click_position((524,29))
+		for pic_name in pic_name_list:
+			print('当前寻找图片：',pic_name)
+			self.click_img(self.get_resource(pic_name))
+			time.sleep(1)
+
+
+	def click_img(self,target_img,runTimes=10):
+		clicked = False
+		delay_time = 2
+		for i in range(runTimes):
+			img = self.capture()
+			pos = self.find_pic(img, target_img)
+			if pos[0] == 0:
+				if clicked:
+					return
+				time.sleep(delay_time)
+				continue
+			else:
+				self.click_position(pos)
+				# cv2.circle(img, pos,1,(255,255,0),3)
+				# cv2.imwrite('p.png',img)
+				if clicked:
+					return
+				clicked = True
+				time.sleep(delay_time)
+
+
+
+
+	def click_position(self, pos):
+		self.dm.MoveTo(*pos)
+		time.sleep(0.5)
+		self.dm.LeftClick()
 
 class dmManager():
 	def __init__(self):
@@ -116,8 +157,26 @@ class dmManager():
 		self.operaterDict = {}
 		self.opId = 0  # 为了创建operater储存id
 		while True:
-			self.checkHwnd()
+			self.check_hwnd2()
 			time.sleep(1)
+
+	def check_hwnd2(self):
+		windowNames = [GAME_WINDOW_NAME,GAME_HALL_NAME]
+		classs = [dmOperater, dm_hall_operater]
+		for i in range(2):
+			windowName = windowNames[i]
+			hwnds = self.dm.EnumWindow(0, windowName, "", 1 + 4 + 8 + 16)
+			print('hwnds:[{}]'.format(hwnds))
+			if isinstance(hwnds, str):
+				if hwnds != '':
+					hwnd = hwnds
+				else:
+					continue
+			else:
+				hwnd = hwnds[0]
+			op = classs[i](self.opId, int(hwnd), self)
+
+
 
 	def checkHwnd(self):
 		windowName = GAME_WINDOW_NAME
@@ -129,7 +188,7 @@ class dmManager():
 			else:
 				hwnds = []
 		for hwnd in hwnds:
-			if hwnd not in self.operaterHwndsList:
+			if hwnd not in self.operaterHwndsList or True:
 				self.opId += 1
 				op = dmOperater(self.opId, int(hwnd), self)  # 此处待开发多线程方式
 				opDict = {
