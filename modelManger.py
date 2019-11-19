@@ -27,9 +27,9 @@ class modelManager():
         if not os.path.exists(r'model/{}'.format(modelName)):
             print('模型文件不存在，文件路径：{} 当前路径：{}'.format(r'model/{}'.format(modelName),os.path.abspath(__file__)))
         if self.path is None:
-            self.models[modelName] = tf.keras.models.load_model(r'model/{}'.format(modelName))
+            self.models[modelName] = tf.keras.models.load_model(r'model/{}'.format(modelName),compile=False)
         else:
-            self.models[modelName] = tf.keras.models.load_model(self.path + r'/model/{}'.format(modelName))
+            self.models[modelName] = tf.keras.models.load_model(self.path + r'/model/{}'.format(modelName),compile=False)
         return self.models[modelName]
 
 model_manager = modelManager()

@@ -20,7 +20,7 @@ class agent():
             self.operator = operater()
         else:
             self.operator = None
-        self.pic_processor = picProcessor(self.operator, test=False)
+        self.pic_processor = picProcessor(test=False)
         self.id = agent_id
         self.brain = policy_gradient(0,0)
         if save_mem:

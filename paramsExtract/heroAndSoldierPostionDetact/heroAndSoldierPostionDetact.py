@@ -1,12 +1,13 @@
 import math
-
 import cv2
 import numpy as np
 import time
 try:
     from setting import *
+    from modelManger import model_manager
 except Exception as e:
     PROJECT_ADDRESS = ''
+
 
 class targetDetacter():
     def __init__(self):
@@ -23,6 +24,11 @@ class targetDetacter():
         self.ally_soldier_target_full = self.colorClear(self.ally_soldier_target_full)
         self.enemy_soldier_target_full = self.colorClear(self.enemy_soldier_target_full)
         self.soldier_mask_full = cv2.imread(self.path + 'xiaobingHP_mask_l.png')
+
+    def get_target_mat(self, img):
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        mat = model_manager.useModel('ally_detacter.h5', img.reshape(1,720,1280,3))
+        return mat
 
     @staticmethod
     def colorClear(img):
