@@ -1,34 +1,52 @@
 # -*- coding: utf-8 -*-
-import time
+import time, cv2
 import json, os
 import numpy as np
 import random
 from dm.MainCommucation import MainCommucation
+from presetAction.Buyequip.Buyequip import Main as equip_action
+
 
 
 class operater(MainCommucation):
-	def __init__(self, id=1,test = False):
-		self.id = id
+	def __init__(self, op_id=1, img_path='', test=False):
+		self.id = op_id
 		self.test = test
+		self.img_path = r"dm/screen1/0.bmp"
+		if img_path is not '':
+			self.img_path = img_path
 		self.commandCahe = {
 			'time': 0,
 			'commandList': []
 		}
+
+
+
 		if not test:
 			super(operater, self).__init__()
 			self.start()
 
-	def randomChooseTargetAction(self:any,action:dict):
-		'''
+		self.equip_action = equip_action(self)
+
+	def get_game_img(self):
+		ret = self.Capture(0, 0, 2000, 2000, self.img_path)
+		if ret == 0:
+			print('capture fail')
+			return None
+		img = cv2.imread(self.img_path)
+		return img
+
+	def randomChooseTargetAction(self: any, action: dict):
+		"""
 		根据softmax得出的值，随机选择一个动作
 		:param action:动作字典，key为动作名 value为动作未指数前概率
 		:return:动作名称
-		'''
+		"""
 		keys = np.array(list(action.keys()))
 		values = np.array(list(action.values()))
-		values = np.e**values
+		values = np.e ** values
 
-		randomTarget = random.random()*np.sum(values)
+		randomTarget = random.random() * np.sum(values)
 
 		s = 0
 		targetActionIndex = 0
@@ -40,42 +58,56 @@ class operater(MainCommucation):
 		targetAction = keys[targetActionIndex]
 		return targetAction
 
+	def init_action(self):
+		self.equip_action.INIT()
+		self.equip_action.Buy('多兰之刃')
+
 	def goHome(self):
-		'''
+		"""
 		返回泉水
 		:return:无
-		'''
+		"""
+		self.MoveToPostion([1105, 707], False)
+		time.sleep(5)
+		self.keyboardCommand('B')
+		time.sleep(9)
 
-		pass
 
-	def actionExcute(self:any,action:dict,params:dict):
-		'''
+	def actionExcute(self: any, action: dict, params: dict):
+		"""
 		根据字典随机选择动作并执行动作
 		:param action:动作字典
 		:param params:参数字典
 		:return:
-		'''
-		targetAction = self.randomChooseTargetAction(action)
+		"""
 
-		if targetAction == 'go':
+		# 回家并买装备
+		if action == 0:
+			self.goHome()
+			# self.equip_action.auto_buy_equip(params['MONEY'])
+			self.equip_action.Buy('多兰之刃')
+
+		# 前进
+		elif action == 1:
 			targetPostion = params.get('go', None)
 			if targetPostion is not None:
-				self.MoveToPostion(targetPostion, True)
-			targetAction = [1,0,0]
-		elif targetAction == 'back':
+				self.MoveToPostion(targetPostion, False)
+
+		# 后退
+		elif action == 2:
+
 			targetPostion = params.get('back', None)
 			if targetPostion is not None:
 				self.MoveToPostion(targetPostion, False)
-			targetAction = [0, 1, 0]
-		elif targetAction == 'standAndAttack':
-			targetPostion = [590,358]
-			self.MoveToPostion(targetPostion, True)
-			targetAction = [0, 0, 1]
-		else:
-			print('未实现动作 待实现：{}'.format(targetAction))
-			raise
-		return targetAction
 
+		# 原地A
+		elif action == 3:
+			targetPostion = [590, 358]
+			self.MoveToPostion(targetPostion, True)
+
+		else:
+			print('未实现动作 待实现：[{}]'.format(action))
+			raise
 
 	def MoveToPostion(self, postionOnMap, attack=True):
 		'''
@@ -106,7 +138,6 @@ class operater(MainCommucation):
 			'delay': delay
 		}
 		self.excuteCommand(command)
-
 
 	def mouseCommand(self, x=-1, y=-1, liftClick=False, rightClick=False, delay=100):
 		'''
@@ -142,7 +173,7 @@ class operater(MainCommucation):
 		self.excuteCommand(command)
 
 	def excuteCommand(self, commandDict):
-		#print(commandDict)
+		# print(commandDict)
 		if self.test:
 			return
 		# 执行命令模块
@@ -170,7 +201,7 @@ class operater(MainCommucation):
 		try:
 			print('excute command:{}'.format(command))
 			eval(command)
-			#time.sleep(delay / 1000)
+		# time.sleep(delay / 1000)
 		except Exception as e:
 			print(e)
 		finally:

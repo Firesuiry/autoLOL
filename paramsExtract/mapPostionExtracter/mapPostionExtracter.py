@@ -2,6 +2,12 @@ import numpy as np
 import cv2
 from sklearn.cluster import MeanShift
 
+"""
+本文件用于在小地图中提取当前所在位置
+原理是识别英雄居中情况下视野范围的白框
+入口方法是centerParaExtract
+需要picProcesser对象作为参数传入
+"""
 
 def postionInSmallMapExtract(self, mapPic):
 	# input pic is 0 and 1 matric
@@ -14,8 +20,6 @@ def postionInSmallMapExtract(self, mapPic):
 
 	kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))  # 定义结构元素
 	mapPic = cv2.morphologyEx(mapPic, cv2.MORPH_OPEN, kernel)  # 开运算
-	# self.pic_display(mapPic,'map2')
-	# exit()
 
 	lieHe = np.sum(mapPic, axis=0)  # 每列求和，最后是一行
 	hangHe = np.sum(mapPic, axis=1)  # 每行求和，最后是一列
@@ -35,11 +39,6 @@ def postionInSmallMapExtract(self, mapPic):
 			hangKuangXianPos.append(i)
 		elif hangHe[i] > 0:
 			hangAreaList.append(i)
-
-	# print('行坐标：%s 列坐标：%s'%(hangKuangXianPos,lieKuangXianPos))
-	# print('中心点坐标：%s'%([np.mean(hangKuangXianPos),np.mean(lieKuangXianPos)]))
-	# print(lieAreaList)
-	# print(hangAreaList)
 
 	# 行坐标：[143, 144, 170, 171] 实际为竖直坐标
 	# 列坐标：[89, 90, 137, 138] 实际为水平坐标
@@ -150,10 +149,9 @@ def postionExtract(self):
 
 def centerParaExtract(self):
 	centerPoint = postionExtract(self)
-	#print('after extract:{}'.format(centerPoint))
+	if centerPoint is None:
+		return -1, -1, -1, -1
 	centerPoint = self.point_transform(centerPoint, True)
-	#print('after Transform:{}'.format(centerPoint))
-	#print(centerPoint)
 	closePointIndex = closePointDetact(self,centerPoint, self.bottomNodeList)
 	# print('最近点序号：{}'.format(closePointIndex))
 	backIndex = closePointIndex - 1
