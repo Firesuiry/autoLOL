@@ -1,16 +1,17 @@
-import cv2
+import cv2,os
 import numpy as np
 
+PATH = os.path.split(__file__)[0] + '/'
 
 class targetDetacter():
     def __init__(self):
-        self.enemy_neita_target_full = cv2.imread('enemy_neita.png')
-        self.ally_neita_target_full = cv2.imread('ally_neita.png')
-        self.neita_mask_full = cv2.imread('neita_mask.png')
+        self.enemy_neita_target_full = cv2.imread(PATH + 'enemy_neita.png')
+        self.ally_neita_target_full = cv2.imread(PATH + 'ally_neita.png')
+        self.neita_mask_full = cv2.imread(PATH + 'neita_mask.png')
 
-        self.enemy_waita_target_full = cv2.imread('enemy_waita.png')
-        self.ally_waita_target_full = cv2.imread('ally_waita.png')
-        self.waita_mask_full = cv2.imread('waita_mask.png')
+        self.enemy_waita_target_full = cv2.imread(PATH + 'enemy_waita.png')
+        self.ally_waita_target_full = cv2.imread(PATH + 'ally_waita.png')
+        self.waita_mask_full = cv2.imread(PATH + 'waita_mask.png')
 
     @staticmethod
     def colorClear(img):
@@ -100,7 +101,6 @@ class targetDetacter():
 
         return np.array(postions)
 
-    @staticmethod
     def getTargetPostions(self, img):
         dic = {}
         img0 = img.copy()

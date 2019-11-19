@@ -148,7 +148,7 @@ class picProcessor:
 
 
 if __name__ == "__main__":
-	filename = 'screen215.bmp'
+	filename = 'screen310.bmp'
 	img = cv2.imread(r'D:\develop\autoLOL\dm\ans\\' + filename)
 	cv2.imwrite('p.png', img)
 	p = picProcessor()

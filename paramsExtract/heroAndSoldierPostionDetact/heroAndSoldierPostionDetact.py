@@ -26,6 +26,7 @@ class targetDetacter():
         self.soldier_mask_full = cv2.imread(self.path + 'xiaobingHP_mask_l.png')
 
     def get_target_mat(self, img):
+        img = img.copy()
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         mat = model_manager.useModel('ally_detacter.h5', img.reshape(1,720,1280,3))
         return mat
