@@ -150,7 +150,7 @@ def postionExtract(self):
 def centerParaExtract(self):
 	centerPoint = postionExtract(self)
 	if centerPoint is None:
-		return -1, -1, -1, -1
+		return
 	centerPoint = self.point_transform(centerPoint, True)
 	closePointIndex = closePointDetact(self,centerPoint, self.bottomNodeList)
 	# print('最近点序号：{}'.format(closePointIndex))

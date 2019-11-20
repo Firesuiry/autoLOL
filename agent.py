@@ -30,6 +30,7 @@ class agent():
 		self.game_state = GAME_STATE.LOADING
 		if not test:
 			self.mainLoop()
+			self.operator
 
 	def mainLoop(self):
 		while (True):
@@ -38,22 +39,45 @@ class agent():
 
 			# ###########################游戏阶段判断
 			if self.game_state == GAME_STATE.LOADING:
+				print('检测游戏是否加载完成')
 				loading_complete = self.pic_processor.loading_complete(img)
 				if loading_complete:
 					self.game_state = GAME_STATE.RUNNING_INIT
 				time.sleep(1)
 				continue
 
-			if self.game_state == GAME_STATE.RUNNING_INIT:
+			elif self.game_state == GAME_STATE.RUNNING_INIT:
+				print('开始进行游戏初始化')
 				if TEST_ACTION == -1:
 					self.operator.init_action()
 				self.game_state = GAME_STATE.RUNNING
 				continue
 
+			elif self.game_state == GAME_STATE.RUNNING:
+				game_end = self.pic_processor.game_end(img)
+				if game_end:
+					print('检测到游戏结束 即将进行下一轮检测')
+					self.game_state = GAME_STATE.ENDING
+					continue
+
+			elif self.game_state == GAME_STATE.ENDING:
+				game_end = self.pic_processor.game_end(img) and not self.pic_processor.game_running(img)
+				if game_end:
+					print('再次检测到游戏结束 即将退出此次进程')
+					delay_shutdown_time = 30
+					for i in range(delay_shutdown_time):
+						time.sleep(1)
+						print(delay_shutdown_time-i)
+					self.operator.close()
+					break
+				else:
+					print('检测失误 恢复运行状态')
+					self.game_state = GAME_STATE.RUNNING
+					continue
+
 		# ############################ob加工
 			try:
 				params = self.pic_processor.param_extract(img, money=False)
-
 			except Exception as e:
 				print(e)
 				time.sleep(1)
@@ -80,5 +104,8 @@ def loadPic(self, path='res/Screen01.png'):
 
 
 if __name__ == "__main__":
-	TEST_ACTION = 4
-	a = agent(save_mem=False)
+	TEST_ACTION = -1
+	while True:
+		print('创建agent等待游戏开启')
+		a = agent(save_mem=False)
+		time.sleep(1)

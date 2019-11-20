@@ -27,6 +27,6 @@ class policy_gradient:
             return 0
 
         actions = [0,1,2,3]
-        action = random.choices(actions, [0.05, 0.5, 0.25, 0.25])[0]
+        action = random.choices(actions, [0.02, 7, 1, 3])[0]
         return action
 

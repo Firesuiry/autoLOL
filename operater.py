@@ -5,6 +5,7 @@ import numpy as np
 import random
 from dm.MainCommucation import MainCommucation
 from presetAction.Buyequip.Buyequip import Main as equip_action
+from presetAction.game_set.game_set import Main as game_setting
 
 THRESHOLD = 0.5
 
@@ -28,6 +29,7 @@ class operater(MainCommucation):
 			self.start()
 
 		self.equip_action = equip_action(self)
+		self.game_setting = game_setting(self)
 
 	def get_game_img(self):
 		ret = self.Capture(0, 0, 2000, 2000, self.img_path)
@@ -60,8 +62,13 @@ class operater(MainCommucation):
 		return targetAction
 
 	def init_action(self):
+		time.sleep(1)
+		self.game_setting.INIT()
+		time.sleep(1)
 		self.equip_action.INIT()
+		time.sleep(1)
 		self.equip_action.Buy('多兰之刃')
+		time.sleep(1)
 
 	def goHome(self):
 		"""
@@ -101,28 +108,32 @@ class operater(MainCommucation):
 
 		# 前进
 		elif action == 1:
+			print('执行action：前进')
 			targetPostion = params.get('go', None)
 			if targetPostion is not None:
 				self.MoveToPostion(targetPostion, False)
 
 		# 后退
 		elif action == 2:
-
+			print('执行action：后退')
 			targetPostion = params.get('back', None)
 			if targetPostion is not None:
 				self.MoveToPostion(targetPostion, False)
 
 		# 原地A
 		elif action == 3:
+			print('执行action：原地A')
 			targetPostion = [590, 358]
 			self.MoveToPostion(targetPostion, True)
 
 		# 走到己方小兵的中心位置
 		elif action == 4:
+			print('执行action：走到己方小兵的中心位置')
 			self.moveto_center_of_soldier(params)
 
 		# 攻击最近的敌方小兵
 		elif action == 5:
+			print('执行action：攻击最近的敌方小兵')
 			self.attack_nearest_enemy_soldier(params)
 
 		else:
@@ -143,89 +154,50 @@ class operater(MainCommucation):
 		else:
 			self.mouseCommand(postionOnMap[0], postionOnMap[1], rightClick=True)
 
-	def keyboardCommand(self, keyChar, delay=100, Down=False, Up=False):
-		mathodName = 'KeyPressChar'
-
+	def keyboardCommand(self, keyChar, Down=False, Up=False):
+		"""
+		键盘动作
+		:param keyChar: 要按的键 如[W]
+		:param Down: 是否按下不松
+		:param Up: 是否仅松开
+		:return:
+		"""
+		time.sleep(0.1)
 		if Down:
-			mathodName = 'KeyDownChar'
-		if Up:
-			mathodName = 'KeyUpChar'
+			dm_ret = self.KeyDownChar(keyChar)
+			if str(dm_ret) != '1':
+				print('出错',dm_ret)
+		elif Up:
+			dm_ret = self.KeyUpChar(keyChar)
+			if str(dm_ret) != '1':
+				print('出错',dm_ret)
+		else:
+			dm_ret = self.KeyPressChar(keyChar)
+			if str(dm_ret) != '1':
+				print('出错',dm_ret)
 
-		# print('keyboardCommand mathod:{} key:{} delay={}'.format(mathodName,keyChar,delay))
-		command = {
-			'name': mathodName,
-			'key': keyChar,
-			'delay': delay
-		}
-		self.excuteCommand(command)
-
-	def mouseCommand(self, x=-1, y=-1, liftClick=False, rightClick=False, delay=100):
+	def mouseCommand(self, x=-1, y=-1, liftClick=False, rightClick=False):
 		'''
 		:param x: -1==NoMove
 		:param y: -1==NoMove
 		:param liftClick:
 		:param rightClick:
-		:param delay:
 		:return:
 		'''
 		# print('mouseCommand x:{} y:{} liftClick:{} rightClick:{} delay={}'.format(x,y,liftClick,rightClick,delay))
 		if x != -1 and y != -1:
-			mathodName = 'MoveTo'
-			command = {
-				'name': mathodName,
-				'x': int(x),
-				'y': int(y),
-				'delay': delay
-			}
-			self.excuteCommand(command)
-
-		mathodName = ''
+			dm_ret = self.MoveTo(x, y)
+			if str(dm_ret) != '1':
+				print('出错',dm_ret)
+		time.sleep(0.3)
 		if liftClick:
-			mathodName = 'LeftClick'
+			dm_ret = self.LeftClick()
+			if str(dm_ret) != '1':
+				print('出错',dm_ret)
 		if rightClick:
-			mathodName = 'RightClick'
-		if mathodName == '':
-			return
-		command = {
-			'name': mathodName,
-			'delay': delay
-		}
-		self.excuteCommand(command)
-
-	def excuteCommand(self, commandDict):
-		# print(commandDict)
-		if self.test:
-			return
-		# 执行命令模块
-		key = commandDict.get('key', '')
-		x = commandDict.get('x', '')
-		y = commandDict.get('y', '')
-		delay = commandDict.get('delay', 100)
-		name = commandDict.get('name', '')
-		if name == '':
-			return
-		mathod = 'self.{}'.format(name)
-		args = ''
-		for arg in [key, x, y]:
-			if arg != '':
-				if args == '':
-					args += '('
-				else:
-					args += ','
-				args += '\'' + str(arg) + '\''
-		if args == '':
-			args = '()'
-		else:
-			args += ')'
-		command = mathod + args
-		try:
-			print('excute command:{}'.format(command))
-			eval(command)
-		# time.sleep(delay / 1000)
-		except Exception as e:
-			print(e)
-		finally:
-			pass
+			dm_ret = self.RightClick()
+			if str(dm_ret) != '1':
+				print('出错',dm_ret)
 
 
 if __name__ == "__main__":
@@ -233,4 +205,3 @@ if __name__ == "__main__":
 	p.keyboardCommand('a', Down=True)
 	p.mouseCommand(619, 425, liftClick=True)
 	p.keyboardCommand('a', Up=True)
-	p.sendCommand()
