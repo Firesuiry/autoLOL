@@ -7,6 +7,8 @@ from reviewAndTrain.dataStore import dataStore
 from setting import *
 
 game_state_check_running_img = cv2.imread(PROJECT_ADDRESS + 'resource/GAME_STATE_CHECK_RUNNING.bmp')
+game_state_check_ending_img = cv2.imread(PROJECT_ADDRESS + 'resource/GAME_STATE_CHECK_RUNNING2.png')
+
 
 class picProcessor:
 	def __init__(self,test=False):
@@ -147,8 +149,20 @@ class picProcessor:
 		return max_val > 0.9
 
 
+	def game_running(self, img):
+		return self.loading_complete(img)
+
+	@staticmethod
+	def game_end(img):
+		print('game_end:',game_state_check_ending_img.shape)
+		res = cv2.matchTemplate(img, game_state_check_ending_img, cv2.TM_CCOEFF_NORMED)
+		min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
+		print(max_val)
+		return max_val < 0.9
+
+
 if __name__ == "__main__":
-	filename = 'screen215.bmp'
+	filename = 'screen310.bmp'
 	img = cv2.imread(r'D:\develop\autoLOL\dm\ans\\' + filename)
 	cv2.imwrite('p.png', img)
 	p = picProcessor()

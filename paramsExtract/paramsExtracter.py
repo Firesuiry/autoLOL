@@ -2,6 +2,7 @@ from paramsExtract.HPextracter.HPextracter import hpExtract
 from paramsExtract.mapPostionExtracter.mapPostionExtracter import centerParaExtract
 from paramsExtract.MoneyExtracter.MoneyExtracter import get_charter
 from paramsExtract.heroAndSoldierPostionDetact.heroAndSoldierPostionDetact import hero_soldier_detacter
+from paramsExtract.defense_tower_detact.defense_tower_position_detect import tower_detacter
 from paramsExtract.currentExp.currentExp import current_exp
 import cv2
 import numpy as np
@@ -32,6 +33,8 @@ def paramExtract(self, position=True, money = True, exp=True, target_mat=True):
 
 	if target_mat:
 		params['mat'] = hero_soldier_detacter.get_target_mat(pic)
+		params['tower'] = tower_detacter.getTargetPostions(pic)
+		print(params['tower'])
 
 	return params
 

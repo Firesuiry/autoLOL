@@ -15,6 +15,9 @@ class MainCommucation:
 		print("链接成功，来自:{}".format(str(addr)))
 		self.socket.close()
 
+	def close(self):
+		self.con.close()
+
 	def __getattr__(self, item):
 		def dock(*args, **kwargs):
 			if self.con:
