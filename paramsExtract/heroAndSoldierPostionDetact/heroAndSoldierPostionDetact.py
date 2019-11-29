@@ -165,6 +165,7 @@ class targetDetacter():
 
     @staticmethod
     def gezi(img,space):
+        img = img.copy()
         w,h = img.shape[:2]
         for i in range(h // space):
             cv2.line(img,(space*(i+1),0),(space*(i+1),w-1),(255,255,255))
@@ -219,9 +220,15 @@ def test():
     unit_mat = np.swapaxes(unit_mat, 0, 1)
     cv2.imwrite('pic/test_img3.png', unit_mat*255)
 
+def hua_gezi():
+    img0 = cv2.imread('p.png')
+    img = hero_soldier_detacter.gezi(img0,8)
+    cv2.imwrite('p2.png',img)
+    img = hero_soldier_detacter.gezi(img0,16)
+    cv2.imwrite('p15.png',img)
 
 if __name__ == '__main__':
-    test()
+    hua_gezi()
     exit()
 
     start = time.time()

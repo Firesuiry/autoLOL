@@ -129,13 +129,12 @@ class targetDetacter():
 
         return dic
 
-    @staticmethod
     def Final_Postions(self, img):
         d1 = np.array([50,150])
         d2 = np.array([110,160])
         ally_tower_postion = []
         enemy_tower_position = []
-        target_postion = self.getTargetPostions(self,img)
+        target_postion = self.getTargetPostions(img)
         ally_neita_postion = target_postion['ally_neita']
         enemy_neita_postion = target_postion['enemy_neita']
         ally_waita_postion = target_postion['ally_waita']
@@ -160,7 +159,7 @@ if __name__ == '__main__':
     for i in range(1, 10):
         index = i * 267 + 231
         img0 = cv2.imread(r'D:\ans\game0\{}.png'.format(index))  # 读入图像
-        ally_tower_postion, enemy_tower_position = tower_detacter.Final_Postions(tower_detacter,img0)
+        ally_tower_postion, enemy_tower_position = tower_detacter.Final_Postions(img0)
         for pos in ally_tower_postion:
              cv2.circle(img0, tuple(pos), 10, (0, 0, 0), 5)
         for pos in enemy_tower_position:

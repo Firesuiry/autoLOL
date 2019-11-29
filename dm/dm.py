@@ -239,17 +239,14 @@ class dmManager():
 
 
 if __name__ == '__main__':
-	# if False:
-	dm = dmManager()
-	exit()
-	# else:
-	# 	print(sys.argv)
-	# 	if sys.argv[1] == '1':
-	# 		windowName = "League of Legends (TM) Client"
-	# 	elif sys.argv[1] == '2':
-	windowName = GAME_HALL_NAME
-		# else:
-		# 	windowName = "League of Legends (TM) Client - [Windows 7 x64]"
+
+	# dm = dmManager()
+	# exit()
+
+	windowName = "League of Legends (TM) Client"
+
+	# windowName = GAME_HALL_NAME
+
 	dm = win32com.client.Dispatch('dm.dmsoft')  # 调用大漠插件
 	print(dm.ver())  # 输出版本号
 	hwnds = ''
@@ -268,7 +265,7 @@ if __name__ == '__main__':
 	while True:
 		if time.time() - last > 0.5:
 			i += 1
-			dm_ret = dm.Capture(0, 0, 2000, 2000, "ans/screen%s.bmp" % i)
+			dm_ret = dm.Capture(0, 0, 2000, 2000, "dm/ans/screen%s.bmp" % i)
 			print('第%s张 结果：%s' % (i, dm_ret))
 			last = time.time()
 		time.sleep(0.01)

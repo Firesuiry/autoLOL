@@ -15,7 +15,7 @@ class GAME_STATE(Enum):
 
 
 class agent():
-	def __init__(self, agent_id=1, test=False, save_mem=True):
+	def __init__(self, agent_id=1, test=False, save_mem=True, init=True):
 		if not test:
 			self.operator = operater()
 		else:
@@ -29,11 +29,12 @@ class agent():
 
 		self.game_state = GAME_STATE.LOADING
 		if not test:
-			self.mainLoop()
-			self.operator
+			self.mainLoop(init)
 
-	def mainLoop(self):
+
+	def mainLoop(self, init=True):
 		while (True):
+			start_time = time.time()
 			# ###########################获取ob
 			img = self.operator.get_game_img()
 
@@ -48,7 +49,7 @@ class agent():
 
 			elif self.game_state == GAME_STATE.RUNNING_INIT:
 				print('开始进行游戏初始化')
-				if TEST_ACTION == -1:
+				if TEST_ACTION == -1 and init:
 					self.operator.init_action()
 				self.game_state = GAME_STATE.RUNNING
 				continue
@@ -80,6 +81,7 @@ class agent():
 				params = self.pic_processor.param_extract(img, money=False)
 			except Exception as e:
 				print(e)
+				raise (e)
 				time.sleep(1)
 				continue
 
@@ -95,7 +97,8 @@ class agent():
 			if self.save_mem:
 				self.ds.storeResult(img, params, action)
 
-			time.sleep(1)
+			print('完整一轮执行花费时间：', time.time() - start_time)
+			time.sleep(0.1)
 
 
 def loadPic(self, path='res/Screen01.png'):
@@ -107,5 +110,5 @@ if __name__ == "__main__":
 	TEST_ACTION = -1
 	while True:
 		print('创建agent等待游戏开启')
-		a = agent(save_mem=False)
+		a = agent(save_mem=False,init=True)
 		time.sleep(1)
