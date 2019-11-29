@@ -81,15 +81,18 @@ class operater(MainCommucation):
 		time.sleep(9)
 
 	def moveto_center_of_soldier(self, params):
-		mat = params['mat'][0]
-		all_pos = np.where(mat > THRESHOLD)
-		all_pos = np.array(all_pos)
-		print(all_pos.shape)
-		print(all_pos)
-		exit()
-
+		target_pos = params['target'][0]
+		if target_pos[0] != -1:
+			self.MoveToPostion(target_pos, False)
+		else:
+			print('无法移动到己方小兵中心-未发现己方小兵')
 	def attack_nearest_enemy_soldier(self, params):
-		pass
+		target_pos = params['target'][1]
+		if target_pos[0] != -1:
+			self.MoveToPostion(target_pos, True)
+		else:
+			print('无法攻击敌方小兵-未发现敌方小兵')
+
 
 
 	def actionExcute(self: any, action: dict, params: dict):

@@ -112,7 +112,6 @@ def postionInSmallMapExtract(self, mapPic):
 	# print('估计中心点：%s 精确中心点：%s'%(centerPos,centerPoint))
 	return centerPoint
 
-
 def closePointDetact(self, point, pointList):
 	'''
 	:param point: 输入点，[x,y]，是英雄实际位置
@@ -145,7 +144,6 @@ def postionExtract(self):
 	pic = np.uint8((pic > 254) * 1)
 	centerPoint = postionInSmallMapExtract(self,pic)
 	return centerPoint
-
 
 def centerParaExtract(self):
 	centerPoint = postionExtract(self)

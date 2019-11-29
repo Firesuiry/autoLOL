@@ -163,10 +163,13 @@ class picProcessor:
 
 if __name__ == "__main__":
 	filename = 'screen310.bmp'
-	img = cv2.imread(r'D:\develop\autoLOL\dm\ans\\' + filename)
-	cv2.imwrite('p.png', img)
+	# img = cv2.imread(r'D:\develop\autoLOL\dm\ans\\' + filename)
+	img = cv2.imread(r'D:\develop\autoLOL\dm\ans\screen295.bmp')
 	p = picProcessor()
-	print(p.param_extract(img, position=True))
+	img = p.element_extract('MAP',img)
+	cv2.imwrite('p.png', img)
+
+	# print(p.param_extract(img, position=True))
 
 
 
