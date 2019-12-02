@@ -84,14 +84,19 @@ class operater(MainCommucation):
 		target_pos = params['target'][0]
 		if target_pos[0] != -1:
 			self.MoveToPostion(target_pos, False)
+			return True
 		else:
 			print('无法移动到己方小兵中心-未发现己方小兵')
+			return False
+
 	def attack_nearest_enemy_soldier(self, params):
 		target_pos = params['target'][1]
 		if target_pos[0] != -1:
 			self.MoveToPostion(target_pos, True)
+			return True
 		else:
 			print('无法攻击敌方小兵-未发现敌方小兵')
+			return False
 
 
 
@@ -114,7 +119,7 @@ class operater(MainCommucation):
 			print('执行action：前进')
 			targetPostion = params.get('go', None)
 			if targetPostion is not None:
-				self.MoveToPostion(targetPostion, False)
+				self.MoveToPostion(targetPostion, True)
 
 		# 后退
 		elif action == 2:
@@ -126,22 +131,26 @@ class operater(MainCommucation):
 		# 原地A
 		elif action == 3:
 			print('执行action：原地A')
-			targetPostion = [590, 358]
-			self.MoveToPostion(targetPostion, True)
+			self.attack_self_position()
 
 		# 走到己方小兵的中心位置
 		elif action == 4:
 			print('执行action：走到己方小兵的中心位置')
-			self.moveto_center_of_soldier(params)
+			if not self.moveto_center_of_soldier(params):
+				self.actionExcute(3,params)
 
 		# 攻击最近的敌方小兵
 		elif action == 5:
 			print('执行action：攻击最近的敌方小兵')
-			self.attack_nearest_enemy_soldier(params)
+			if not self.attack_nearest_enemy_soldier(params):
+				self.actionExcute(1,params)
 
 		else:
 			print('未实现动作 待实现：[{}]'.format(action))
 			raise
+	def attack_self_position(self):
+		targetPostion = [590, 358]
+		self.MoveToPostion(targetPostion, True)
 
 	def MoveToPostion(self, postionOnMap, attack=True):
 		'''
