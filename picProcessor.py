@@ -3,8 +3,8 @@ from paramsExtract.paramsExtracter import paramExtract
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
-from reviewAndTrain.dataStore import dataStore
 from setting import *
+from modelManger import model_manager
 
 game_state_check_running_img = cv2.imread(PROJECT_ADDRESS + 'resource/GAME_STATE_CHECK_RUNNING.bmp')
 game_state_check_ending_img = cv2.imread(PROJECT_ADDRESS + 'resource/GAME_STATE_CHECK_RUNNING2.png')
@@ -13,6 +13,7 @@ game_state_check_ending_img = cv2.imread(PROJECT_ADDRESS + 'resource/GAME_STATE_
 class picProcessor:
 	def __init__(self,test=False):
 		self.test = test
+		self.oldobs = np.zeros((4689,))
 
 		# 以下初始化一些数据
 		self.currentPic = None
@@ -83,6 +84,9 @@ class picProcessor:
 		self.bottomNodeList = self.newBottomNodeList.copy()
 		assert (len(self.bottomNodeList) != 0)
 
+	def init_obs(self):
+		self.oldobs = np.zeros((4689,))
+
 	def element_extract(self, element_name, ori_pic):
 		"""
 		从图片中提取某些元素，如小地图，血条，蓝条等，具体数据在self.postionData
@@ -141,6 +145,49 @@ class picProcessor:
 		self.currentPic = img
 		return paramExtract(self, **args)
 
+	def obs_params_extract(self, img, igone_same_check=False):
+		assert (img.shape == (720, 1280, 3))
+		same = (img == self.currentPic).all()
+		if same and not igone_same_check:
+			print('获取图片 判断为重复 退出：{}'.format(same))
+			return
+		self.currentPic = img
+		params = paramExtract(self, position=False,money=False,exp=False,target=False,tower=False,img=img)
+		obs = params['mat'].reshape(-1)
+		hp = params['HP'].reshape(-1)
+		code = self.encoder(img)
+		obs = np.hstack((obs, hp, code))
+		print('single obs shape:',obs.shape)
+		new_obs = np.hstack((obs,self.oldobs))
+		self.oldobs = obs
+		obs = new_obs
+		print('obs.shape:', obs.shape)
+		return params, obs
+
+	def encoder(self,img):
+		print(img.shape)
+		small_img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+		small_img = cv2.resize(small_img,(448, 256))
+		print(small_img.shape)
+		small_img = small_img / 255
+		small_img = small_img.reshape(1,256,448,1)
+		code = model_manager.useModel('encoder.h5',small_img).reshape(-1)
+		return code
+
+
+
+
+	def action_params_augment(self, action, params):
+		if action in [1, 2, 5, 4]:
+			params = paramExtract(self, params=params, money=False, exp=False, target_mat=False, tower=False)
+		return params
+	# 回家0
+	# 前进1
+	# 后退2
+	# 原地A3
+	# 走到己方小兵的中心位置4
+	# 攻击最近的敌方小兵5
+
 	@staticmethod
 	def loading_complete(img):
 		res = cv2.matchTemplate(img, game_state_check_running_img, cv2.TM_CCOEFF_NORMED)
@@ -165,9 +212,10 @@ if __name__ == "__main__":
 	filename = 'screen310.bmp'
 	# img = cv2.imread(r'D:\develop\autoLOL\dm\ans\\' + filename)
 	img = cv2.imread(r'D:\develop\autoLOL\dm\ans\screen295.bmp')
+	img2 = cv2.imread(r'D:\develop\autoLOL\dm\ans\screen296.bmp')
 	p = picProcessor()
-	img = p.element_extract('MAP',img)
-	cv2.imwrite('p.png', img)
+	p.obs_params_extract(img)
+	p.obs_params_extract(img2)
 
 	# print(p.param_extract(img, position=True))
 

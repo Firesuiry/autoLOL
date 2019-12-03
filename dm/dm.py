@@ -113,7 +113,7 @@ class dm_hall_operater():
 		img = cv2.imread(path)
 		return img
 
-	def find_pic(self, img, target: np.ndarray, the=0.99, center_point=True):
+	def find_pic(self, img, target: np.ndarray, the=0.95, center_point=True):
 		res = cv2.matchTemplate(img, target, cv2.TM_CCOEFF_NORMED)
 		min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
 		if max_val < the:
@@ -197,7 +197,7 @@ class dmManager():
 			else:
 				hwnd = hwnds[0]
 			op = classs[i](self.opId, int(hwnd), self)
-			print('当前任务：【{}】完成，将于5秒后开启下次任务'.format(windowNames))
+			print('当前任务：【{}】完成，将于5秒后开启下次任务'.format(windowName))
 			time.sleep(5)
 
 	def check_hwnd3(self):
@@ -240,8 +240,8 @@ class dmManager():
 
 if __name__ == '__main__':
 
-	# dm = dmManager()
-	# exit()
+	dm = dmManager()
+	exit()
 
 	windowName = "League of Legends (TM) Client"
 

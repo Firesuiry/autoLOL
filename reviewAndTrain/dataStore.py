@@ -25,13 +25,22 @@ class dataStore():
 		self.picIndex = 0
 		self.cache = {}
 		self.txtFile = open(self.filesLocation + 'infor.txt', 'a')
+		self.errFile = open(self.filesLocation + 'err.txt', 'a')
 
-	def storeResult(self,pic,params,actions):
+
+	def err_write(self,err):
+		err = [str(err)+'\n',str(err.__traceback__.tb_frame.f_globals["__file__"])+'\n',str(err.__traceback__.tb_lineno)+'\n']
+		print(err)
+		self.errFile.writelines(err)
+
+	def storeResult(self,pic,params,actions,obs, action_prob):
 		information = {
 			'file':self.picIndex,
-			'params':params,
+			# 'params':params,
 			'actions':actions,
-			'gameID':self.id
+			'gameID':self.id,
+			'obs':obs.tolist(),
+			'action_prob':action_prob.tolist()
 		}
 
 		inforStr = json.dumps(information)
@@ -40,11 +49,13 @@ class dataStore():
 		self.picIndex += 1
 
 if __name__ == '__main__':
-	img = cv2.imread(r'E:\develop\autoLOLres\ans\screen1.bmp')
-	for i in range(1):
+	a = []
+	try:
+		a[5] = 0
+	except Exception as e:
 		ds = dataStore()
-		for j in range(10):
-			ds.storeResult(img,{'i':i},{'j':j})
+		ds.err_write(e)
+
 
 
 
