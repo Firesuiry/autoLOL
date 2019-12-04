@@ -13,7 +13,7 @@ game_state_check_ending_img = cv2.imread(PROJECT_ADDRESS + 'resource/GAME_STATE_
 class picProcessor:
 	def __init__(self,test=False):
 		self.test = test
-		self.oldobs = np.zeros((4689,))
+		self.init_obs()
 
 		# 以下初始化一些数据
 		self.currentPic = None
@@ -85,7 +85,7 @@ class picProcessor:
 		assert (len(self.bottomNodeList) != 0)
 
 	def init_obs(self):
-		self.oldobs = np.zeros((4689,))
+		self.oldobs = np.zeros((4691,))
 
 	def element_extract(self, element_name, ori_pic):
 		"""
@@ -152,11 +152,13 @@ class picProcessor:
 			print('获取图片 判断为重复 退出：{}'.format(same))
 			return
 		self.currentPic = img
-		params = paramExtract(self, position=False,money=False,exp=False,target=False,tower=False,img=img)
+		params = paramExtract(self,exp=False,target=False,tower=False,img=img)
 		obs = params['mat'].reshape(-1)
 		hp = params['HP'].reshape(-1)
+		money = params['money']
+		postion = params['postionIndex']
 		code = self.encoder(img)
-		obs = np.hstack((obs, hp, code))
+		obs = np.hstack((hp,money,postion,obs,code))
 		print('single obs shape:',obs.shape)
 		new_obs = np.hstack((obs,self.oldobs))
 		self.oldobs = obs

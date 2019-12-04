@@ -98,7 +98,8 @@ class operater(MainCommucation):
 			print('无法攻击敌方小兵-未发现敌方小兵')
 			return False
 
-
+	def auto_buy_equip(self):
+		self.equip_action.Buy('多兰之刃')
 
 	def actionExcute(self: any, action: dict, params: dict):
 		"""

@@ -31,10 +31,6 @@ def hpExtract(self,pic = None):
 	return hp
 
 if __name__ == '__main__':
-	i = 1
-	while(True):
-		imgBGR = cv2.imread(r'E:\develop\autoLOL\ans\game0\{}.png'.format(i))
-		imgBGR = HpPicExtract(imgBGR)
-		hp = hpExtract(None,imgBGR)
-		print(i,hp)
-		i += 1
+	imgBGR = cv2.imread(r'E:\train_data\game30\517.png')
+	hp = hpExtract(None,imgBGR)
+	print(hp)

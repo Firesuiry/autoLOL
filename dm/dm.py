@@ -125,7 +125,7 @@ class dm_hall_operater():
 			return max_val
 
 	def start_game(self):
-		pic_name_list = ['reset', 'X', 'PLAY', 'xunlian', 'xunlianmoshi', 'queren', 'kaishiyouxi', 'xialu', 'hanbing',
+		pic_name_list = ['reset', "reward_after_game_ok", 'X', 'PLAY', 'xunlian', 'xunlianmoshi', 'queren', 'kaishiyouxi', 'xialu', 'hanbing',
 						'queren2']
 		for pic_name in pic_name_list:
 			if self.start_success:

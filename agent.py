@@ -25,7 +25,7 @@ class agent():
 			self.operator = None
 		self.pic_processor = picProcessor(test=False)
 		self.id = agent_id
-		self.brain = policy_gradient(n_actions=6, n_features=2641)
+		self.brain = policy_gradient(n_actions=6, n_features=9382)
 		if save_mem:
 			self.ds = dataStore()
 		self.save_mem = save_mem
@@ -43,7 +43,7 @@ class agent():
 
 		# 调用train 开始训练
 		try:
-			generate_data_score()
+			generate_data_score(reCaculateScore=False)
 		except Exception as e:
 			print('训练出错 错误：',str(e))
 			self.ds.err_write(e)
@@ -55,7 +55,7 @@ class agent():
 
 
 	def mainLoop(self, init=True, takein_img=None, run_once=False, show_time = False):
-		while (True):
+		while(True):
 			start_time = time.time()
 			# ###########################获取ob
 			if takein_img is None:
@@ -90,10 +90,6 @@ class agent():
 				game_end = self.pic_processor.game_end(img) and not self.pic_processor.game_running(img)
 				if game_end:
 					print('再次检测到游戏结束 即将退出此次进程')
-					# delay_shutdown_time = 30
-					# for i in range(delay_shutdown_time):
-					# 	time.sleep(1)
-					# 	print(delay_shutdown_time-i)
 					self.end_operate()
 					break
 				else:
@@ -113,6 +109,13 @@ class agent():
 				continue
 			if show_time:
 				print('ob加工所用时间:',time.time()-t)
+		# #############################死亡检测与死亡时买装备
+			if params['HP'] == 0:
+				print('当前已经死亡，执行买装备操作')
+				self.operator.auto_buy_equip()
+				time.sleep(1)
+				continue
+
 		# #############################动作选择
 			t = time.time()
 			action_prob, action = self.brain.determine_action(obs)

@@ -143,7 +143,7 @@ class policy_gradient:
 			self,
 			n_actions=0,
 			n_features=0,
-			learning_rate=0.000003,
+			learning_rate=0.0001,
 			reward_decay=0.95,
 	):
 		assert n_actions != 0 and n_features != 0
@@ -151,8 +151,8 @@ class policy_gradient:
 		self.n_features = n_features
 		self.lr = learning_rate
 		self.gamma = reward_decay
-		self.net_learning_rate = 0.000003
-		self.random_prob = 0.02
+		self.net_learning_rate = 0.000001
+		self.random_prob = 0.05
 		self.actions = [0,1,2,3,4,5]
 		self.creat_net(self.n_features, self.n_actions)
 
@@ -168,15 +168,16 @@ class policy_gradient:
 		# 原地A3
 		# 走到己方小兵的中心位置4
 		# 攻击最近的敌方小兵5
-
-
 		action_prob = self.actor_evaluate_net.predict(observation[np.newaxis])[0]
 		if random.random() < self.random_prob:
+			print('本次动作为随机选择')
 			action = random.choice(self.actions)
+			if action == 0:
+				action = random.choice(self.actions)
 		else:
 			action = random.choices(self.actions, action_prob)[0]
 
-		print('选择动作：', action, ' 动作概率:',action_prob)
+		print('选择动作：', action, ' 动作概率:', action_prob)
 		return action_prob, action
 
 	def creat_net(self, state_dims: int, action_dims: int):
@@ -187,8 +188,6 @@ class policy_gradient:
 			self.actor_evaluate_net = self.bulid_actor_net(state_dims, action_dims)
 
 		self.actor_evaluate_net.compile(optimizer=tf.keras.optimizers.Adam(learning_rate = self.lr), loss=tf.losses.mse)
-
-
 
 	def save_net(self):
 		path = PROJECT_ADDRESS + 'model/pga0.h5'
@@ -206,33 +205,44 @@ class policy_gradient:
 		return model
 
 
-	def learn(self, observations, actions, q):
+	def learn(self, observations, actions, q, show_log = False):
 		# 训练执行者网络
-		print('q:',q)
+		if show_log:
+			print('q:',q)
 		observation_tensor = tf.convert_to_tensor(np.array(observations)[np.newaxis], dtype=tf.float32)
 		q_tensor = tf.convert_to_tensor(q, dtype=tf.float32)
-		print(observation_tensor)
 		with tf.GradientTape() as tape:
 			action_tensor = self.actor_evaluate_net(observation_tensor)
-			print('action_prob:',action_tensor.numpy())
+			if show_log:
+				print('action_prob 均值:', np.mean(action_tensor.numpy(),axis=1))
+				print('action_prob:', action_tensor.numpy())
 			choose_action_tensor = tf.convert_to_tensor(actions)
-			print('choose_action_tensor:', choose_action_tensor.numpy())
+			if show_log:
+				print('choose_action_tensor:', choose_action_tensor.numpy())
 			one_hot_choose_action_tensor = tf.one_hot(choose_action_tensor, self.n_actions)
-			print('one_hot_choose_action_tensor:', one_hot_choose_action_tensor.numpy())
-
-			neg_log_prob_tensor = tf.math.reduce_sum(-tf.math.log(action_tensor + 1e-20) * one_hot_choose_action_tensor, axis=1)
-			print('neg_log_prob_tensor:', neg_log_prob_tensor.numpy())
-
+			if show_log:
+				print('one_hot_choose_action_tensor:', one_hot_choose_action_tensor.numpy())
+			neg_log_prob_tensor = tf.math.reduce_sum(-tf.math.log(action_tensor + 1e-20) * one_hot_choose_action_tensor, axis=2)
+			if show_log:
+				print('neg_log_prob_tensor:', neg_log_prob_tensor.numpy())
 			loss_tensor = tf.reduce_mean(neg_log_prob_tensor * q_tensor)
-			print('loss_tensor:', loss_tensor.numpy())
+
+			# # 防止动作概率变为0
+			# one = tf.ones_like(action_tensor)
+			# zero = tf.zeros_like(action_tensor)
+			# action_small_label_tensor = tf.where(action_tensor < 1e-15, x=one, y=zero)
+			# action_loss_tensor = (1e-15 - action_tensor) * action_small_label_tensor
+			# action_loss_tensor = -tf.math.log(action_tensor + 1e-30) * action_small_label_tensor
+			# loss_tensor = loss_tensor + tf.reduce_sum(action_loss_tensor)
+
+			if show_log:
+				print('loss_tensor:', loss_tensor.numpy())
 			if np.isnan(loss_tensor.numpy()):
 				print('nan err')
 				exit()
 
 		grad_tensors = tape.gradient(loss_tensor, self.actor_evaluate_net.variables)
 		self.actor_evaluate_net.optimizer.apply_gradients(zip(grad_tensors, self.actor_evaluate_net.variables))
-
-
 
 if __name__ == '__main__':
 	brain = policy_gradient()
