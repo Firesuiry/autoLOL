@@ -151,13 +151,17 @@ class Equip:
 		for i in self.ChildEquip:
 			p += i.NeedMoney
 		return self.NeedMoney - p
-	def Buy(self,Money):
+	def Buy(self,Money:int,Grid=6) -> list:
+		""":param Money 购买的钱数
+		   :param Grid 还空余的购买的格子
+		   :return 可以购买的列表
+		"""
 		NokoruMoney = Money
 		if self.Flag:
-			return True
+			return [self.name]
 		if NokoruMoney >= self.NeedMoney:
 			self.Flag = True
-			return True
+			return [self.name]
 		else:
 			Q_W = 0
 			for i in self.ChildEquip:
@@ -203,6 +207,10 @@ class Equip:
 				NokoruMoney -= self.NeedMoney - Q_W
 				self.Flag = True
 		A = self.pp()
+		if len(A) > Grid:
+			for i in range(len(A) - Grid):
+				w = A.pop(1)
+				w.Flag = False
 		ret = [i.name for i in A if i not in self.LastBoughtList]
 		self.LastBoughtList = A
 		return ret
@@ -219,6 +227,6 @@ class Equip:
 		return ll
 if __name__ == '__main__':
 	w = Equip(131)
-	print(w.Buy(350))
-	print(w.Buy(2000))
-	print(w.Buy(2000))
+	print(w.Buy(350,Grid=2))
+	print(w.Buy(2000,Grid=3))
+	print(w.Buy(2000,Grid=3))
