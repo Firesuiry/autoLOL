@@ -1,4 +1,5 @@
-# autoLOL
+# autoLOL 
+项目目前已经终止~
 ## 最终目标：
 创建一个像alphaZero那样的AI
 
